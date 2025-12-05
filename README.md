@@ -24,7 +24,7 @@ ferm-app/
   infra/         # Docker, e2e, deployment scripts
   README.md
   PROMPT.md      # AI IDE/System prompt (see below)
-    PROMPT.md      # AI IDE/System prompt (see below)
+
 docs/domain and docs/api are the source of truth for behaviour.
 
 api and web must implement these contracts.
