@@ -296,3 +296,14 @@ Documentation should be:
 ---
 
 By following these rules you will grow AgroFlow as a **minimal, clean and extensible** system that does exactly what the farm needs – no more, no less.
+
+---
+
+## 13. FILE EDITING & OPERATIONS
+
+- **Edit Locally**: You MUST perform all file editing and creation directly on the local filesystem (WSL/Host).
+- **No Docker Edits**: Do NOT use `docker-compose run ...` or terminal commands inside containers to edit, create, or manipulate source files (e.g., `schema.prisma`, `package.json`).
+  - Docker is strictly for *running* the application, migrations, and tests.
+  - File synchronization from Host to Container is assumed to handle updates.
+- **Terminal Usage**: Use the local terminal (WSL) for file operations (`touch`, `mkdir`, `cp`, `rm`) and git commands.
+

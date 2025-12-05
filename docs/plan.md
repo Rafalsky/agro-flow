@@ -4,7 +4,9 @@
 - [ ] Initialize NestJS project in `api/`
 - [ ] Initialize React (Vite) project in `web/`
 - [ ] Setup Docker Compose (`db`, `api`, `web`)
+  - Ensure the full application stack runs seamlessly via `docker-compose up`
 - [ ] Configure Environment Variables (`.env.example`)
+  - Implement support for `production`, `development`, and `test` environments via env vars
 - [ ] Set up global prefix `/api` and healthchecks
 
 ## Milestone 2: Database & Core Domain Entities
