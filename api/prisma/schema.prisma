@@ -1,0 +1,142 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  WORKER
+  ZOOTECHNICIAN
+  STAKEHOLDER_READONLY
+}
+
+enum TicketType {
+  CYCLE
+  NORMAL
+  EMERGENCY
+  CYCLE_INSTANCE
+}
+
+enum TicketStatus {
+  TODO
+  IN_PROGRESS
+  PAUSED
+  WORKER_DONE
+  ZOO_DONE
+}
+
+enum TimeSlot {
+  MORNING
+  EVENING
+  FULL
+}
+
+enum ShiftStatus {
+  WORKING
+  ON_LEAVE
+}
+
+model User {
+  id          String   @id @default(uuid())
+  role        UserRole
+  displayName String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  ticketsAssigned  Ticket[]
+  shiftAssignments ShiftAssignment[]
+  authTokens       AuthToken[]
+  taskEvents       TaskEvent[]
+  activationTokens ActivationToken[]
+  magicLinks       MagicLink[]
+}
+
+model AuthToken {
+  token      String   @id
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  expiresAt  DateTime
+  isRevoked  Boolean  @default(false)
+  lastSeenAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+}
+
+model ActivationToken {
+  token     String    @id
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  usedAt    DateTime?
+  isRevoked Boolean   @default(false)
+  createdAt DateTime  @default(now())
+}
+
+model MagicLink {
+  id        String   @id
+  role      UserRole
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Ticket {
+  id          String       @id @default(uuid())
+  type        TicketType
+  title       String
+  description String?
+  area        String?
+  plannedDate DateTime     @db.Date
+  timeSlot    TimeSlot
+  assigneeId  String?
+  assignee    User?        @relation(fields: [assigneeId], references: [id])
+  status      TicketStatus @default(TODO)
+  storyPoints Int          @default(0)
+  checklist   Json?
+  data        Json?
+  version     Int          @default(1)
+  sourceCycleId String?
+  sourceCycle   CycleDefinition? @relation(fields: [sourceCycleId], references: [id])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  history     TaskEvent[]
+}
+
+model TaskEvent {
+  id        String   @id @default(uuid())
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  workerId  String?
+  worker    User?    @relation(fields: [workerId], references: [id])
+  type      String
+  timestamp DateTime @default(now())
+  details   Json?
+}
+
+model CycleDefinition {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  area        String?
+  dayOfWeek   Int
+  timeSlot    TimeSlot
+  storyPoints Int      @default(0)
+  checklist   Json?
+  data        Json?
+  isActive    Boolean  @default(true)
+  tickets     Ticket[]
+}
+
+model ShiftAssignment {
+  id        String      @id @default(uuid())
+  workerId  String
+  worker    User        @relation(fields: [workerId], references: [id])
+  date      DateTime    @db.Date
+  timeSlot  TimeSlot
+  status    ShiftStatus
+  @@unique([workerId, date, timeSlot])
+}
