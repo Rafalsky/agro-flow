@@ -1,34 +1,34 @@
 # Implementation Plan
 
 ## Milestone 1: Project Skeleton & Infra
-- [ ] Initialize NestJS project in `api/`
-- [ ] Initialize React (Vite) project in `web/`
-- [ ] Setup Docker Compose (`db`, `api`, `web`)
-  - Ensure the full application stack runs seamlessly via `docker-compose up`
-- [ ] Configure Environment Variables (`.env.example`)
-  - Implement support for `production`, `development`, and `test` environments via env vars
-- [ ] Set up global prefix `/api` and healthchecks
+- [x] Initialize NestJS project in `api/`
+- [x] Initialize React (Vite) project in `web/`
+- [x] Setup Docker Compose (`db`, `api`, `web`)
+  - [x] Ensure the full application stack runs seamlessly via `docker-compose up`
+- [x] Configure Environment Variables (`.env.example`)
+  - [x] Implement support for `production`, `development`, and `test` environments via env vars
+- [x] Set up global prefix `/api` and healthchecks
 
 ## Milestone 2: Database & Core Domain Entities
-- [ ] Design Schema (Prisma/TypeORM): Users, Workers, Tickets, Calendars
-- [ ] Implement initial migrations
-- [ ] Implement `User` / `Worker` entities and seeds
+- [x] Design Schema (Prisma/TypeORM): Users, Workers, Tickets, Calendars
+- [x] Implement initial migrations
+- [x] Implement `User` / `Worker` entities and seeds
 
 ## Milestone 3: Authentication
-- [ ] Implement Cookie-based Auth Guard
-- [ ] Implement Activation Link generation and handling
-- [ ] Implement Magic Link handling for Stakeholders
-- [ ] `GET /api/me` endpoint
+- [x] Implement Cookie-based Auth Guard
+- [~] Implement Activation Link generation and handling
+- [~] Implement Magic Link handling for Stakeholders
+- [~] `GET /api/me` endpoint
 
 ## Milestone 4: Calendars & Sprint Logic (Backend)
-- [ ] Implement `GlobalCycle` CRUD
-- [ ] Implement `ShiftAssignment` CRUD
-- [ ] Implement Sprint Generation Logic (Cycle -> Instances + Auto-assign)
+- [x] Implement `GlobalCycle` CRUD
+- [x] Implement `ShiftAssignment` CRUD
+- [x] Implement Sprint Generation Logic (Cycle -> Instances + Auto-assign)
 
 ## Milestone 5: Tickets & Board State (Backend)
-- [ ] Implement Ticket CRUD (Create, Update Status, Edit)
-- [ ] Implement `GET /api/board` (Zootechnician view)
-- [ ] Implement `GET /api/me/tasks` (Worker view)
+- [x] Implement Ticket CRUD (Create, Update Status, Edit)
+- [~] Implement `GET /api/board` (Zootechnician view)
+- [~] Implement `GET /api/me/tasks` (Worker view)
 - [ ] Implement Optimistic Locking (versions)
 
 ## Milestone 6: Realtime Gateway

@@ -7,8 +7,10 @@ import { CyclesModule } from './cycles/cycles.module';
 import { ShiftsModule } from './shifts/shifts.module';
 import { SprintModule } from './sprint/sprint.module';
 
+import { EventsModule } from './events/events.module';
+
 @Module({
-  imports: [AuthModule, TicketsModule, CyclesModule, ShiftsModule, SprintModule],
+  imports: [AuthModule, TicketsModule, CyclesModule, ShiftsModule, SprintModule, EventsModule],
   controllers: [AppController],
   providers: [AppService],
 })

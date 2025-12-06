@@ -29,6 +29,23 @@ export class TicketsController {
         return this.ticketsService.findAll(where);
     }
 
+    @Get('board')
+    @Roles(UserRole.ZOOTECHNICIAN)
+    getBoard(@Query('date') date: string) {
+        const targetDate = date ? new Date(date) : new Date();
+        return this.ticketsService.getBoard(targetDate);
+    }
+
+    @Get('me/tasks')
+    @Roles(UserRole.WORKER)
+    getMyTasks(@CurrentAuth() user: User) {
+        if (!user) throw new UnauthorizedException();
+        // Default to today
+        const today = new Date();
+        // Normalize time if needed, but for now just pass Date object
+        return this.ticketsService.getWorkerTasks(user.id, today);
+    }
+
     @Patch(':id/start')
     @Roles(UserRole.WORKER)
     start(@Param('id') id: string, @Body('clientVersion', ParseIntPipe) clientVersion: number, @CurrentAuth() user: User) {

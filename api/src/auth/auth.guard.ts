@@ -7,7 +7,7 @@ export class AuthGuard implements CanActivate {
 
     async canActivate(ctx: ExecutionContext): Promise<boolean> {
         const request = ctx.switchToHttp().getRequest();
-        const token = request.cookies['auth_token'];
+        const token = request.cookies?.['auth_token'];
 
         if (!token) {
             // If we want to allow guests for some routes, we could check for public decorators here

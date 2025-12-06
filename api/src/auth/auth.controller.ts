@@ -1,6 +1,9 @@
-import { Controller, Get, Query, Res, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Query, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
+import { AuthGuard } from './auth.guard';
+import { CurrentAuth } from './current-auth.decorator';
+import type { User } from '@prisma/client';
 
 @Controller('auth')
 export class AuthController {
@@ -50,5 +53,11 @@ export class AuthController {
         } catch (e) {
             throw new UnauthorizedException('Login failed');
         }
+    }
+
+    @Get('me')
+    @UseGuards(AuthGuard)
+    me(@CurrentAuth() user: User) {
+        return user;
     }
 }
