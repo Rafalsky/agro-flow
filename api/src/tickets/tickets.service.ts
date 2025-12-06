@@ -172,7 +172,6 @@ export class TicketsService {
                 where: { id: ticketId },
                 data: {
                     status: TicketStatus.WORKER_DONE,
-                    data: data ? data : undefined, // Update data if provided
                     version: { increment: 1 }
                 }
             });
@@ -181,8 +180,42 @@ export class TicketsService {
                 data: {
                     ticketId,
                     workerId,
-                    type: 'worker_done',
-                    details: data
+                    type: 'finished',
+                    details: data // Pass optional data
+                }
+            });
+            return updated;
+        });
+
+        this.eventsGateway.emitTicketUpdate(result);
+        return result;
+    }
+
+    async update(id: string, data: Prisma.TicketUpdateInput, version: number): Promise<Ticket> {
+        const ticket = await this.prisma.ticket.findUnique({ where: { id } });
+        if (!ticket) throw new NotFoundException();
+
+        if (ticket.version !== version) {
+            throw new ConflictException(`Version mismatch. Server: ${ticket.version}, Client: ${version}`);
+        }
+
+        // Filter out version from data if passed, as we handle it manually
+        const { version: _v, ...updateData } = data as any;
+
+        const result = await this.prisma.$transaction(async (tx) => {
+            const updated = await tx.ticket.update({
+                where: { id },
+                data: {
+                    ...updateData,
+                    version: { increment: 1 }
+                }
+            });
+
+            await tx.taskEvent.create({
+                data: {
+                    ticketId: id,
+                    type: 'updated',
+                    details: updateData
                 }
             });
 

@@ -59,4 +59,22 @@ export class TicketsController {
         if (!user) throw new UnauthorizedException();
         return this.ticketsService.finishTask(id, user.id, clientVersion, data);
     }
+
+    @Patch(':id')
+    @Roles(UserRole.ZOOTECHNICIAN)
+    update(
+        @Param('id') id: string,
+        @Body() data: Prisma.TicketUpdateInput,
+        @Body('version', ParseIntPipe) version: number,
+        @CurrentAuth() user: User
+    ) {
+        // Enforce optimistic locking
+        if (version === undefined) {
+            // If client doesn't send version, we might skip check or throw bad request.
+            // For safety, let's require it, or default to generic update if not critical?
+            // Board DnD should handle optimistic locking.
+            throw new UnauthorizedException('Version is required for updates');
+        }
+        return this.ticketsService.update(id, data, version);
+    }
 }

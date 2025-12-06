@@ -1,35 +1,62 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { SocketProvider } from './context/SocketContext';
+import Login from './pages/Login';
+import WorkerDashboard from './pages/WorkerDashboard';
+import BoardView from './pages/BoardView';
+import NotFound from './pages/NotFound';
+import type { ReactNode } from 'react';
 
-function App() {
-  const [count, setCount] = useState(0)
+function ProtectedRoute({ children, allowedRole }: { children: ReactNode, allowedRole?: 'WORKER' | 'ZOOTECHNICIAN' }) {
+  const { isAuthenticated, isLoading, user } = useAuth();
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+  if (isLoading) {
+    return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Simple role check
+  if (allowedRole && user?.role !== allowedRole) {
+    // Redirect to their home
+    if (user?.role === 'WORKER') return <Navigate to="/" replace />;
+    if (user?.role === 'ZOOTECHNICIAN') return <Navigate to="/board" replace />;
+    return <div>Access Denied</div>;
+  }
+
+  return <>{children}</>;
 }
 
-export default App
+function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <SocketProvider>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+
+            {/* Worker Home */}
+            <Route path="/" element={
+              <ProtectedRoute allowedRole="WORKER">
+                <WorkerDashboard />
+              </ProtectedRoute>
+            } />
+
+            {/* Zootechnician Board */}
+            <Route path="/board" element={
+              <ProtectedRoute allowedRole="ZOOTECHNICIAN">
+                <BoardView />
+              </ProtectedRoute>
+            } />
+
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </SocketProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}
+
+export default App;
