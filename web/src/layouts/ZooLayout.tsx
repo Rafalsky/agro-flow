@@ -1,5 +1,7 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import {
     LayoutDashboard,
     Users,
@@ -10,13 +12,14 @@ import {
 
 export default function ZooLayout() {
     const { logout } = useAuth();
+    const { t } = useTranslation();
     const location = useLocation();
 
     const navItems = [
-        { path: '/board', label: 'Board', icon: LayoutDashboard },
-        { path: '/workers', label: 'Workers', icon: Users },
-        { path: '/cycles', label: 'Cycles', icon: RefreshCw },
-        { path: '/shifts', label: 'Shifts', icon: CalendarDays },
+        { path: '/board', label: t('nav.board'), icon: LayoutDashboard },
+        { path: '/workers', label: t('nav.workers'), icon: Users },
+        { path: '/cycles', label: t('nav.cycles'), icon: RefreshCw },
+        { path: '/shifts', label: t('nav.shifts'), icon: CalendarDays },
     ];
 
     return (
@@ -34,7 +37,7 @@ export default function ZooLayout() {
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 700, background: 'linear-gradient(to right, #4ade80, #3b82f6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                         AgroFlow
                     </h1>
-                    <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.5)' }}>Zootechnician Panel</p>
+                    <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.5)' }}>{t('panel.title')}</p>
                 </div>
 
                 <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -83,13 +86,16 @@ export default function ZooLayout() {
                     }}
                 >
                     <LogOut size={20} />
-                    <span>Logout</span>
+                    <span>{t('nav.logout')}</span>
                 </button>
             </aside>
 
             {/* Main Content Area */}
-            <main style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
-                <Outlet />
+            {/* Main Content Area */}
+            <main style={{ flex: 1, overflow: 'hidden', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ flex: 1, overflow: 'auto', position: 'relative' }}>
+                    <Outlet />
+                </div>
             </main>
         </div>
     );

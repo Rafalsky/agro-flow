@@ -1,17 +1,87 @@
 import { useState, useMemo } from 'react';
 import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, TouchSensor } from '@dnd-kit/core';
-import type { DragEndEvent } from '@dnd-kit/core';
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { useBoardTickets } from '../hooks/useBoardTickets';
-import { BoardColumn } from '../components/BoardColumn';
 import { TicketCard } from '../components/TicketCard';
 import { CreateTicketModal } from '../components/CreateTicketModal';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { useAuth } from '../context/AuthContext';
 import type { Ticket } from '../types';
 import { Plus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { useDroppable } from '@dnd-kit/core';
+
+// Internal components for this view
+function BoardRow({ id, title, tickets, isUnassigned = false }: { id: string, title: string, tickets: Ticket[], isUnassigned?: boolean }) {
+    const { setNodeRef, isOver } = useDroppable({
+        id: id,
+    });
+
+    return (
+        <div ref={setNodeRef} className="glass-panel" style={{
+            padding: '1rem',
+            marginBottom: '1rem',
+            backgroundColor: isOver ? 'rgba(59, 130, 246, 0.1)' : undefined,
+            transition: 'background-color 0.2s',
+            minHeight: isUnassigned ? '140px' : '120px',
+            border: isOver ? '1px solid rgba(59, 130, 246, 0.4)' : undefined
+        }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem', color: isUnassigned ? '#fbbf24' : 'white' }}>
+                {title} <span style={{ opacity: 0.5, fontSize: '0.8rem', marginLeft: '0.5rem' }}>({tickets.length})</span>
+            </h3>
+
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                {tickets.map(t => (
+                    <DraggableTicket key={t.id} ticket={t} />
+                ))}
+                {tickets.length === 0 && (
+                    <div style={{
+                        height: '100px',
+                        width: '200px',
+                        border: '1px dashed rgba(255,255,255,0.1)',
+                        borderRadius: '0.5rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.8rem',
+                        color: 'rgba(255,255,255,0.3)'
+                    }}>
+                        {isUnassigned ? 'No unassigned tickets' : 'Drop here to assign'}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+// Draggable Wrapper
+import { useDraggable } from '@dnd-kit/core';
+
+function DraggableTicket({ ticket }: { ticket: Ticket }) {
+    const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+        id: ticket.id,
+        data: ticket
+    });
+
+    if (isDragging) {
+        return <div ref={setNodeRef} style={{ opacity: 0, width: 300, height: 150 }} />;
+    }
+
+    return (
+        <div ref={setNodeRef} {...listeners} {...attributes}>
+            <TicketCard
+                ticket={ticket}
+                onStart={() => { }}
+                onFinish={() => { }}
+            />
+        </div>
+    );
+}
 
 export default function BoardView() {
     const { logout } = useAuth();
-    const { tickets, loading, updateTicket } = useBoardTickets();
+    const { t } = useTranslation();
+    const { tickets, loading, updateTicket, refresh } = useBoardTickets();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -25,7 +95,6 @@ export default function BoardView() {
         const unassigned = tickets.filter(t => !t.assigneeId);
 
         // Extract unique assignees from tickets to build swimlanes dynamically
-        // In a real app, we'd fetch all active workers to show empty lanes too
         const workerMap = new Map();
         tickets.forEach(t => {
             if (t.assignee) {
@@ -33,44 +102,43 @@ export default function BoardView() {
             }
         });
 
-        const columns = Array.from(workerMap.values()).map(worker => ({
+        const rows = Array.from(workerMap.values()).map(worker => ({
             id: worker.id,
             title: worker.displayName || worker.email,
             tickets: tickets.filter(t => t.assigneeId === worker.id)
         }));
 
-        return { unassigned, columns };
+        return { unassigned, rows };
     }, [tickets]);
 
-    const handleDragStart = (event: any) => {
-        setActiveId(event.active.id);
+    const handleDragStart = (event: DragStartEvent) => {
+        setActiveId(event.active.id as string);
     };
 
-    const handleDragEnd = (event: DragEndEvent) => {
+    const handleDragEnd = async (event: DragEndEvent) => {
         const { active, over } = event;
         setActiveId(null);
 
         if (!over) return;
 
         const ticketId = active.id as string;
-        const overId = over.id as string; // This will be the workerId (column id)
+        const overId = over.id as string; // This will be the workerId (row id) or 'unassigned'
 
-        // Find ticket
         const ticket = tickets.find(t => t.id === ticketId);
         if (!ticket) return;
 
-        // Check if moved to a different column
-        // Column IDs are user IDs, except 'unassigned'
         const targetAssigneeId = overId === 'unassigned' ? null : overId;
 
         if (ticket.assigneeId !== targetAssigneeId) {
-            updateTicket(ticketId, { assigneeId: targetAssigneeId }, ticket.version);
+            // Optimistic update could happen here, but hook handles it via re-fetch mostly
+            // Ideally we'd update local state immediately
+            await updateTicket(ticketId, { assigneeId: targetAssigneeId }, ticket.version);
+            refresh();
         }
     };
 
-    // We need to pass workers to modal. Extract from board data for now.
-    const workers = boardData.columns.map(c => ({ id: c.id, displayName: c.title, email: '', role: 'WORKER' } as any));
-
+    // We need to pass workers to modal
+    const workers = boardData.rows.map(r => ({ id: r.id, displayName: r.title, email: '', role: 'WORKER' } as any));
     const activeTicket = activeId ? tickets.find(t => t.id === activeId) : null;
 
     if (loading) {
@@ -88,52 +156,49 @@ export default function BoardView() {
                 border: 'none',
                 borderBottom: '1px solid rgba(255,255,255,0.1)'
             }}>
-                <h1 style={{ fontSize: '1.25rem' }}>Zootechnician Board</h1>
+                <h1 style={{ fontSize: '1.25rem' }}>{t('board.title')}</h1>
 
-                <div style={{ display: 'flex', gap: '1rem' }}>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                     <button className="btn btn-primary" onClick={() => setIsModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Plus size={18} /> New Ticket
+                        <Plus size={18} /> {t('board.newTicket')}
                     </button>
-                    <button className="btn glass-panel" onClick={logout}>Logout</button>
+
+                    <LanguageSwitcher />
+
+                    <button className="btn glass-panel" onClick={logout}>{t('nav.logout')}</button>
                 </div>
             </header>
 
             <div style={{
                 flex: 1,
-                overflowX: 'auto',
+                overflowY: 'auto',
                 padding: '2rem',
                 display: 'flex',
+                flexDirection: 'column',
                 gap: '1.5rem'
             }}>
                 <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-                    {/* Unassigned Column */}
-                    <BoardColumn
+                    {/* Unassigned Area at Top */}
+                    <BoardRow
                         id="unassigned"
-                        title="Unassigned"
-                        count={boardData.unassigned.length}
+                        title={t('board.unassigned')}
+                        tickets={boardData.unassigned}
                         isUnassigned
-                    >
-                        {boardData.unassigned.map(t => (
-                            // We need a draggable wrapper here actually if we use Sortable
-                            // But dnd-kit can drag items directly if we use Draggable. TicketCard isn't draggable itself.
-                            // Let's create `DraggableTicket` wrapper inline or separate?
-                            // For simplicity, let's wrap here.
-                            <DraggableTicket key={t.id} ticket={t} />
-                        ))}
-                    </BoardColumn>
+                    />
 
-                    {/* Worker Columns */}
-                    {boardData.columns.map(col => (
-                        <BoardColumn key={col.id} id={col.id} title={col.title} count={col.tickets.length}>
-                            {col.tickets.map(t => (
-                                <DraggableTicket key={t.id} ticket={t} />
-                            ))}
-                        </BoardColumn>
+                    {/* Worker Rows */}
+                    {boardData.rows.map(row => (
+                        <BoardRow
+                            key={row.id}
+                            id={row.id}
+                            title={row.title}
+                            tickets={row.tickets}
+                        />
                     ))}
 
                     <DragOverlay>
                         {activeTicket ? (
-                            <div style={{ transform: 'rotate(5deg)' }}>
+                            <div style={{ transform: 'rotate(2deg)', opacity: 0.9 }}>
                                 <TicketCard ticket={activeTicket} onStart={() => { }} onFinish={() => { }} />
                             </div>
                         ) : null}
@@ -141,35 +206,15 @@ export default function BoardView() {
                 </DndContext>
             </div>
 
-            {isModalOpen && <CreateTicketModal workers={workers} onClose={() => setIsModalOpen(false)} />}
-        </div>
-    );
-}
-
-// Draggable Wrapper
-import { useDraggable } from '@dnd-kit/core';
-
-function DraggableTicket({ ticket }: { ticket: Ticket }) {
-    const { attributes, listeners, setNodeRef, transform } = useDraggable({
-        id: ticket.id,
-        data: ticket
-    });
-
-    const style = transform ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-    } : undefined;
-
-    return (
-        <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
-            <TicketCard
-                ticket={ticket}
-                onStart={() => { }}
-                onFinish={() => { }}
-            // Disable buttons in board view, or keep them? 
-            // Usually drag handle is card itself.
-            // Listeners on root div might block buttons.
-            // For now good enough.
-            />
+            {isModalOpen && (
+                <CreateTicketModal
+                    workers={workers}
+                    onClose={() => {
+                        setIsModalOpen(false);
+                        refresh(); // Refresh on close to catch new ticket
+                    }}
+                />
+            )}
         </div>
     );
 }

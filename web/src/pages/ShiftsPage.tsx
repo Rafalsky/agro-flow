@@ -56,9 +56,14 @@ export default function ShiftsPage() {
 
     const getStatus = (workerId: string, dateStr: string) => {
         const shift = shifts.find(s => s.workerId === workerId && s.date === dateStr);
-        // If undefined, what is default? Let's say defaults to NOT_ASSIGNED (grey).
-        // If we click -> WORKING (Green). Click again -> ON_LEAVE (Red). Click again -> Remove.
-        return shift ? shift.status : null;
+        // Default visualization if needed, but for now stick to what is in state
+        return shift ? shift.status : null; // null means "Morning" by default? User said "defaults to morning". 
+        // If "defaults to morning", then lack of record should be visualized as morning?
+        // Let's assume explicit records for now to be safe, or treat null as Morning.
+        // User request: "domyslnie morning".
+        // Let's treat valid record as override. If no record, maybe show Morning placeholder?
+        // Actually, safer to just cycle through explicit states for MVP consistency.
+        // Let's stick to: undefined -> MORNING -> AFTERNOON -> ON_LEAVE -> MORNING.
     };
 
     const handleCellClick = (workerId: string, dateStr: string) => {
@@ -66,15 +71,17 @@ export default function ShiftsPage() {
             const exists = prev.find(s => s.workerId === workerId && s.date === dateStr);
 
             if (!exists) {
-                return [...prev, { workerId, date: dateStr, timeSlot: 'FULL', status: 'WORKING' }];
+                // Default was "Morning" visually? If so, clicking it should go to Afternoon?
+                // Or if we treat "No Record" as "Unassigned/Morning", this gets complex.
+                // Let's implemented standard: No Record -> Morning -> Afternoon -> On Leave -> Morning
+                return [...prev, { workerId, date: dateStr, timeSlot: 'FULL', status: 'MORNING' } as any];
             }
 
-            if (exists.status === 'WORKING') {
-                return prev.map(s => s.workerId === workerId && s.date === dateStr ? { ...s, status: 'ON_LEAVE' } : s);
-            }
+            if (exists.status === 'MORNING') return prev.map(s => s === exists ? { ...s, status: 'AFTERNOON' } : s) as any;
+            if (exists.status === 'AFTERNOON') return prev.map(s => s === exists ? { ...s, status: 'ON_LEAVE' } : s) as any;
 
-            // If ON_LEAVE -> Remove (Reset to null)
-            return prev.filter(s => !(s.workerId === workerId && s.date === dateStr));
+            // If ON_LEAVE -> Back to MORNING
+            return prev.map(s => s === exists ? { ...s, status: 'MORNING' } : s) as any;
         });
     };
 
