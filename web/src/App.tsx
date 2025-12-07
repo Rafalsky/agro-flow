@@ -4,7 +4,11 @@ import { SocketProvider } from './context/SocketContext';
 import Login from './pages/Login';
 import WorkerDashboard from './pages/WorkerDashboard';
 import BoardView from './pages/BoardView';
+import WorkersPage from './pages/WorkersPage';
+import CyclesPage from './pages/CyclesPage';
+import ShiftsPage from './pages/ShiftsPage';
 import NotFound from './pages/NotFound';
+import ZooLayout from './layouts/ZooLayout';
 import type { ReactNode } from 'react';
 
 function ProtectedRoute({ children, allowedRole }: { children: ReactNode, allowedRole?: 'WORKER' | 'ZOOTECHNICIAN' }) {
@@ -44,12 +48,17 @@ function App() {
               </ProtectedRoute>
             } />
 
-            {/* Zootechnician Board */}
-            <Route path="/board" element={
+            {/* Zootechnician Routes */}
+            <Route element={
               <ProtectedRoute allowedRole="ZOOTECHNICIAN">
-                <BoardView />
+                <ZooLayout />
               </ProtectedRoute>
-            } />
+            }>
+              <Route path="/board" element={<BoardView />} />
+              <Route path="/workers" element={<WorkersPage />} />
+              <Route path="/cycles" element={<CyclesPage />} />
+              <Route path="/shifts" element={<ShiftsPage />} />
+            </Route>
 
             <Route path="*" element={<NotFound />} />
           </Routes>
