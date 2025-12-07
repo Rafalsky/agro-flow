@@ -18,7 +18,11 @@ export class TicketsService {
 
         // Log creation event? Optional for creation, but good for history
         const result = await this.prisma.$transaction(async (tx) => {
-            const ticket = await tx.ticket.create({ data });
+            const ticketData = {
+                ...data,
+                plannedDate: new Date(data.plannedDate as string) // Ensure Date object
+            };
+            const ticket = await tx.ticket.create({ data: ticketData });
             await tx.taskEvent.create({
                 data: {
                     ticketId: ticket.id,

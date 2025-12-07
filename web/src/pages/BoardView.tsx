@@ -15,10 +15,6 @@ export default function BoardView() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeId, setActiveId] = useState<string | null>(null);
 
-    if (loading) {
-        return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading Board...</div>;
-    }
-
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
         useSensor(TouchSensor)
@@ -76,6 +72,10 @@ export default function BoardView() {
     const workers = boardData.columns.map(c => ({ id: c.id, displayName: c.title, email: '', role: 'WORKER' } as any));
 
     const activeTicket = activeId ? tickets.find(t => t.id === activeId) : null;
+
+    if (loading) {
+        return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading Board...</div>;
+    }
 
     return (
         <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
