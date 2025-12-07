@@ -29,7 +29,6 @@ function BoardRow({ id, title, tickets, isUnassigned = false, shiftStatus }: { i
             marginBottom: '1rem',
             backgroundColor: isUnavailable ? 'rgba(0,0,0,0.3)' : (isOver ? 'rgba(59, 130, 246, 0.1)' : undefined),
             transition: 'background-color 0.2s',
-            minHeight: isUnassigned ? '140px' : '120px',
             border: isOver ? '1px solid rgba(59, 130, 246, 0.4)' : (isUnavailable ? '1px solid rgba(255,255,255,0.05)' : undefined),
             opacity: isUnavailable ? 0.6 : 1,
             pointerEvents: isUnavailable ? 'none' : 'auto' // Prevent interactions
@@ -40,7 +39,7 @@ function BoardRow({ id, title, tickets, isUnassigned = false, shiftStatus }: { i
                 {getStatusBadge()}
             </h3>
 
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', pointerEvents: 'auto' }}>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', pointerEvents: 'auto', alignItems: 'flex-start' }}>
                 {tickets.map(t => (
                     // Enable pointer events for tickets even if row is disabled? 
                     // No, if row is disabled (OFF), maybe tickets shouldn't be there or just read-only? 
