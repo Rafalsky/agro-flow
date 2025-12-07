@@ -38,6 +38,22 @@
         "addTask": "Dodaj Zadanie",
         "deleteConfirm": "Czy na pewno usunąć to zadanie z cyklu?",
         "editTask": "Edytuj Zadanie",
-        "dragHint": "Przeciągnij zadania, aby zmienić termin. Kliknij dwukrotnie, aby edytować."
+        "dragHint": "Przeciągnij zadania, aby zmienić termin. Kliknij dwukrotnie, aby edytować.",
+        "day": "Dzień",
+        "morning": "Rano",
+        "evening": "Wieczór",
+        "title_label": "Tytuł",
+        "day_label": "Dzień",
+        "time_label": "Czas",
+        "cancel": "Anuluj",
+        "save": "Zapisz",
+        "create": "Utwórz",
+        "monday": "Poniedziałek",
+        "tuesday": "Wtorek",
+        "wednesday": "Środa",
+        "thursday": "Czwartek",
+        "friday": "Piątek",
+        "saturday": "Sobota",
+        "sunday": "Niedziela"
     }
 }

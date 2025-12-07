@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../lib/api';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Check, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, TouchSensor, useDraggable, useDroppable } from '@dnd-kit/core';
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
@@ -14,15 +14,15 @@ interface Cycle {
 }
 
 const DAYS_ORDER = [1, 2, 3, 4, 5, 6, 0];
-const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export default function CyclesPage() {
     const { t } = useTranslation();
     const [cycles, setCycles] = useState<Cycle[]>([]);
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
-    const [editingCycle, setEditingCycle] = useState<Cycle | null>(null);
-    const [activeId, setActiveId] = useState<string | null>(null); // For DragOverlay
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editValue, setEditValue] = useState('');
+    const [activeId, setActiveId] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -34,6 +34,18 @@ export default function CyclesPage() {
         useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
         useSensor(TouchSensor)
     );
+
+    const getDayNames = (): string[] => {
+        return [
+            t('cycles.sunday'),
+            t('cycles.monday'),
+            t('cycles.tuesday'),
+            t('cycles.wednesday'),
+            t('cycles.thursday'),
+            t('cycles.friday'),
+            t('cycles.saturday')
+        ];
+    };
 
     const fetchCycles = async () => {
         try {
@@ -54,20 +66,11 @@ export default function CyclesPage() {
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            if (editingCycle) {
-                await api.patch(`/cycles/${editingCycle.id}`, {
-                    title: formData.title,
-                    dayOfWeek: Number(formData.dayOfWeek),
-                    timeSlot: formData.timeSlot
-                });
-            } else {
-                await api.post('/cycles', {
-                    ...formData,
-                    dayOfWeek: Number(formData.dayOfWeek)
-                });
-            }
+            await api.post('/cycles', {
+                ...formData,
+                dayOfWeek: Number(formData.dayOfWeek)
+            });
             setModalOpen(false);
-            setEditingCycle(null);
             fetchCycles();
         } catch (e) {
             console.error(e);
@@ -83,18 +86,7 @@ export default function CyclesPage() {
     };
 
     const openCreateModal = () => {
-        setEditingCycle(null);
         setFormData({ title: '', dayOfWeek: 1, timeSlot: 'MORNING' });
-        setModalOpen(true);
-    };
-
-    const openEditModal = (cycle: Cycle) => {
-        setEditingCycle(cycle);
-        setFormData({
-            title: cycle.title,
-            dayOfWeek: cycle.dayOfWeek,
-            timeSlot: cycle.timeSlot
-        });
         setModalOpen(true);
     };
 
@@ -108,8 +100,6 @@ export default function CyclesPage() {
 
         if (!over) return;
 
-        // active.id is cycleId
-        // over.id should be "dayIndex-slot" string
         const cycleId = active.id as string;
         const [dayStr, slot] = (over.id as string).split('|');
         const day = Number(dayStr);
@@ -117,7 +107,6 @@ export default function CyclesPage() {
         const cycle = cycles.find(c => c.id === cycleId);
         if (!cycle) return;
 
-        // Optimistic update
         if (cycle.dayOfWeek !== day || cycle.timeSlot !== slot) {
             setCycles(prev => prev.map(c => c.id === cycleId ? { ...c, dayOfWeek: day, timeSlot: slot as any } : c));
 
@@ -125,7 +114,7 @@ export default function CyclesPage() {
                 await api.patch(`/cycles/${cycleId}`, { dayOfWeek: day, timeSlot: slot });
             } catch (e) {
                 console.error("Move failed", e);
-                fetchCycles(); // Revert on fail
+                fetchCycles();
             }
         }
     };
@@ -134,7 +123,34 @@ export default function CyclesPage() {
         return cycles.filter(c => c.dayOfWeek === day && (c.timeSlot === slot || c.timeSlot === 'FULL'));
     };
 
+    const startEditing = (cycle: Cycle) => {
+        setEditingId(cycle.id);
+        setEditValue(cycle.title);
+    };
+
+    const saveInlineEdit = async (cycleId: string) => {
+        if (!editValue.trim()) {
+            cancelEdit();
+            return;
+        }
+
+        try {
+            await api.patch(`/cycles/${cycleId}`, { title: editValue });
+            setCycles(prev => prev.map(c => c.id === cycleId ? { ...c, title: editValue } : c));
+            setEditingId(null);
+        } catch (e) {
+            console.error('Failed to save', e);
+            cancelEdit();
+        }
+    };
+
+    const cancelEdit = () => {
+        setEditingId(null);
+        setEditValue('');
+    };
+
     const activeCycle = activeId ? cycles.find(c => c.id === activeId) : null;
+    const DAY_NAMES = getDayNames();
 
     if (loading) return <div className="p-8">{t('dashboard.loading')}</div>;
 
@@ -161,12 +177,12 @@ export default function CyclesPage() {
                         borderBottom: '1px solid rgba(255,255,255,0.1)',
                         backgroundColor: 'rgba(255,255,255,0.02)'
                     }}>
-                        <div style={{ padding: '1rem', fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>Day</div>
+                        <div style={{ padding: '1rem', fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>{t('cycles.day')}</div>
                         <div style={{ padding: '1rem', fontWeight: 600, borderLeft: '1px solid rgba(255,255,255,0.1)', textAlign: 'center', color: '#fcd34d' }}>
-                            Morning
+                            {t('cycles.morning')}
                         </div>
                         <div style={{ padding: '1rem', fontWeight: 600, borderLeft: '1px solid rgba(255,255,255,0.1)', textAlign: 'center', color: '#818cf8' }}>
-                            Evening
+                            {t('cycles.evening')}
                         </div>
                     </div>
 
@@ -195,26 +211,34 @@ export default function CyclesPage() {
                                 <DroppableSlot
                                     id={`${dayIndex}|MORNING`}
                                     items={getCyclesForSlot(dayIndex, 'MORNING')}
-                                    onEdit={openEditModal}
+                                    onEdit={startEditing}
+                                    onDelete={handleDelete}
+                                    editingId={editingId}
+                                    editValue={editValue}
+                                    setEditValue={setEditValue}
+                                    saveEdit={saveInlineEdit}
+                                    cancelEdit={cancelEdit}
                                     onAdd={() => {
-                                        setEditingCycle(null);
                                         setFormData({ title: '', dayOfWeek: dayIndex, timeSlot: 'MORNING' });
                                         setModalOpen(true);
                                     }}
-                                    onDelete={handleDelete}
                                 />
 
                                 {/* Evening Slot */}
                                 <DroppableSlot
                                     id={`${dayIndex}|EVENING`}
                                     items={getCyclesForSlot(dayIndex, 'EVENING')}
-                                    onEdit={openEditModal}
+                                    onEdit={startEditing}
+                                    onDelete={handleDelete}
+                                    editingId={editingId}
+                                    editValue={editValue}
+                                    setEditValue={setEditValue}
+                                    saveEdit={saveInlineEdit}
+                                    cancelEdit={cancelEdit}
                                     onAdd={() => {
-                                        setEditingCycle(null);
                                         setFormData({ title: '', dayOfWeek: dayIndex, timeSlot: 'EVENING' });
                                         setModalOpen(true);
                                     }}
-                                    onDelete={handleDelete}
                                 />
                             </div>
                         ))}
@@ -233,15 +257,15 @@ export default function CyclesPage() {
                 }}>
                     <div className="glass-panel" style={{ width: '400px', padding: '2rem' }}>
                         <h2 style={{ fontSize: '1.25rem', marginBottom: '1.5rem' }}>
-                            {editingCycle ? t('cycles.editTask') : t('cycles.addTask')}
+                            {t('cycles.addTask')}
                         </h2>
                         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>Title</label>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>{t('cycles.title_label')}</label>
                                 <input
                                     className="glass-panel"
                                     style={{ width: '100%', padding: '0.75rem', color: 'white' }}
-                                    placeholder="e.g. Feeding"
+                                    placeholder="np. Karmienie"
                                     required
                                     value={formData.title}
                                     onChange={e => setFormData({ ...formData, title: e.target.value })}
@@ -250,7 +274,7 @@ export default function CyclesPage() {
 
                             <div style={{ display: 'flex', gap: '1rem' }}>
                                 <div style={{ flex: 1 }}>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>Day</label>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>{t('cycles.day_label')}</label>
                                     <select
                                         className="glass-panel"
                                         style={{ width: '100%', padding: '0.75rem', color: 'white' }}
@@ -263,22 +287,22 @@ export default function CyclesPage() {
                                     </select>
                                 </div>
                                 <div style={{ flex: 1 }}>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>Time</label>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>{t('cycles.time_label')}</label>
                                     <select
                                         className="glass-panel"
                                         style={{ width: '100%', padding: '0.75rem', color: 'white' }}
                                         value={formData.timeSlot}
                                         onChange={e => setFormData({ ...formData, timeSlot: e.target.value })}
                                     >
-                                        <option value="MORNING">Morning</option>
-                                        <option value="EVENING">Evening</option>
+                                        <option value="MORNING">{t('cycles.morning')}</option>
+                                        <option value="EVENING">{t('cycles.evening')}</option>
                                     </select>
                                 </div>
                             </div>
 
                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
-                                <button type="button" className="btn" onClick={() => setModalOpen(false)}>Cancel</button>
-                                <button type="submit" className="btn btn-primary">{editingCycle ? 'Save' : 'Create'}</button>
+                                <button type="button" className="btn" onClick={() => setModalOpen(false)}>{t('cycles.cancel')}</button>
+                                <button type="submit" className="btn btn-primary">{t('cycles.create')}</button>
                             </div>
                         </form>
                     </div>
@@ -288,24 +312,24 @@ export default function CyclesPage() {
     );
 }
 
-function DroppableSlot({ id, items, onEdit, onDelete, onAdd }: {
+function DroppableSlot({ id, items, onEdit, onDelete, onAdd, editingId, editValue, setEditValue, saveEdit, cancelEdit }: {
     id: string,
     items: Cycle[],
     onEdit: (c: Cycle) => void,
     onDelete: (id: string) => void,
-    onAdd: () => void
+    onAdd: () => void,
+    editingId: string | null,
+    editValue: string,
+    setEditValue: (v: string) => void,
+    saveEdit: (id: string) => void,
+    cancelEdit: () => void
 }) {
     const { setNodeRef, isOver } = useDroppable({ id });
 
     return (
         <div
             ref={setNodeRef}
-            onDoubleClick={() => {
-                // Only trigger if clicked directly on the slot or empty space, not bubbled from item?
-                // But item stops propagation usually.
-                // Let's assume standard behavior.
-                onAdd();
-            }}
+            onDoubleClick={() => onAdd()}
             style={{
                 padding: '1rem',
                 borderLeft: '1px solid rgba(255,255,255,0.1)',
@@ -315,7 +339,7 @@ function DroppableSlot({ id, items, onEdit, onDelete, onAdd }: {
                 backgroundColor: isOver ? 'rgba(56, 189, 248, 0.1)' : undefined,
                 transition: 'background-color 0.2s',
                 minHeight: '100%',
-                cursor: 'pointer' // Hint interactivity
+                cursor: 'pointer'
             }}
         >
             {items.map(cycle => (
@@ -324,20 +348,31 @@ function DroppableSlot({ id, items, onEdit, onDelete, onAdd }: {
                     cycle={cycle}
                     onEdit={onEdit}
                     onDelete={onDelete}
+                    editingId={editingId}
+                    editValue={editValue}
+                    setEditValue={setEditValue}
+                    saveEdit={saveEdit}
+                    cancelEdit={cancelEdit}
                 />
             ))}
         </div>
     );
 }
 
-function SortableCycleItem({ cycle, onEdit, onDelete }: {
+function SortableCycleItem({ cycle, onEdit, onDelete, editingId, editValue, setEditValue, saveEdit, cancelEdit }: {
     cycle: Cycle,
     onEdit: (c: Cycle) => void,
-    onDelete: (id: string) => void
+    onDelete: (id: string) => void,
+    editingId: string | null,
+    editValue: string,
+    setEditValue: (v: string) => void,
+    saveEdit: (id: string) => void,
+    cancelEdit: () => void
 }) {
     const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
         id: cycle.id,
-        data: cycle
+        data: cycle,
+        disabled: editingId === cycle.id
     });
 
     if (isDragging) {
@@ -346,22 +381,38 @@ function SortableCycleItem({ cycle, onEdit, onDelete }: {
 
     return (
         <div ref={setNodeRef} {...listeners} {...attributes}>
-            <CycleItem cycle={cycle} onEdit={onEdit} onDelete={onDelete} />
+            <CycleItem
+                cycle={cycle}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                isEditing={editingId === cycle.id}
+                editValue={editValue}
+                setEditValue={setEditValue}
+                saveEdit={saveEdit}
+                cancelEdit={cancelEdit}
+            />
         </div>
     );
 }
 
-function CycleItem({ cycle, onEdit, onDelete, isOverlay }: {
+function CycleItem({ cycle, onEdit, onDelete, isOverlay, isEditing, editValue, setEditValue, saveEdit, cancelEdit }: {
     cycle: Cycle,
     onEdit?: (c: Cycle) => void,
     onDelete?: (id: string) => void,
-    isOverlay?: boolean
+    isOverlay?: boolean,
+    isEditing?: boolean,
+    editValue?: string,
+    setEditValue?: (v: string) => void,
+    saveEdit?: (id: string) => void,
+    cancelEdit?: () => void
 }) {
     return (
         <div
             onDoubleClick={(e) => {
-                e.stopPropagation(); // prevent drag start if overlapping
-                onEdit && onEdit(cycle);
+                e.stopPropagation();
+                if (!isEditing && onEdit) {
+                    onEdit(cycle);
+                }
             }}
             style={{
                 backgroundColor: isOverlay ? '#3b82f6' : 'rgba(255,255,255,0.05)',
@@ -372,24 +423,74 @@ function CycleItem({ cycle, onEdit, onDelete, isOverlay }: {
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 border: '1px solid rgba(255,255,255,0.05)',
-                cursor: isOverlay ? 'grabbing' : 'grab',
+                cursor: isOverlay ? 'grabbing' : (isEditing ? 'text' : 'grab'),
                 boxShadow: isOverlay ? '0 10px 15px -3px rgba(0, 0, 0, 0.5)' : 'none',
                 transform: isOverlay ? 'scale(1.05)' : 'none',
-                userSelect: 'none'
+                userSelect: isEditing ? 'text' : 'none'
             }}
         >
-            <span style={{ fontWeight: 500 }}>{cycle.title}</span>
-            {!isOverlay && onDelete && (
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(cycle.id);
-                    }}
-                    onPointerDown={(e) => e.stopPropagation()} // Prevent drag functionality from hijacking click
-                    style={{ color: '#fca5a5', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}
-                >
-                    <Trash2 size={14} />
-                </button>
+            {isEditing ? (
+                <>
+                    <input
+                        autoFocus
+                        value={editValue}
+                        onChange={(e) => setEditValue?.(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                saveEdit?.(cycle.id);
+                            } else if (e.key === 'Escape') {
+                                cancelEdit?.();
+                            }
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                            flex: 1,
+                            background: 'rgba(255,255,255,0.1)',
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            borderRadius: '4px',
+                            padding: '0.25rem 0.5rem',
+                            color: 'white',
+                            fontSize: '0.875rem'
+                        }}
+                    />
+                    <div style={{ display: 'flex', gap: '0.25rem', marginLeft: '0.5rem' }}>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                saveEdit?.(cycle.id);
+                            }}
+                            style={{ color: '#4ade80', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}
+                        >
+                            <Check size={16} />
+                        </button>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                cancelEdit?.();
+                            }}
+                            style={{ color: '#fca5a5', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}
+                        >
+                            <X size={16} />
+                        </button>
+                    </div>
+                </>
+            ) : (
+                <>
+                    <span style={{ fontWeight: 500 }}>{cycle.title}</span>
+                    {!isOverlay && onDelete && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onDelete(cycle.id);
+                            }}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            style={{ color: '#fca5a5', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}
+                        >
+                            <Trash2 size={14} />
+                        </button>
+                    )}
+                </>
             )}
         </div>
     );
