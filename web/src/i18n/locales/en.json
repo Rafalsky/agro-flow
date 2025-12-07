@@ -1,0 +1,43 @@
+{
+    "nav": {
+        "board": "Board",
+        "workers": "Workers",
+        "cycles": "Cycles",
+        "shifts": "Shifts",
+        "logout": "Logout"
+    },
+    "dashboard": {
+        "hello": "Hello, {{name}}",
+        "status": "Status",
+        "online": "Online",
+        "offline": "Offline",
+        "todaysTasks": "Today's Tasks",
+        "loading": "Loading tasks...",
+        "noTasks": "No tasks assigned for today."
+    },
+    "panel": {
+        "title": "Zootechnician Panel"
+    },
+    "board": {
+        "title": "Zootechnician Board",
+        "newTicket": "New Ticket",
+        "unassigned": "Unassigned",
+        "dragHint": "Drag tickets to assign to workers"
+    },
+    "shifts": {
+        "title": "Shift Management",
+        "week": "Week",
+        "save": "Save Shifts",
+        "saving": "Saving...",
+        "generate": "Generate Sprint",
+        "generating": "Generating...",
+        "guide": "Click details: Morning -> Afternoon -> Off -> Morning."
+    },
+    "cycles": {
+        "title": "Cycle Definitions",
+        "addTask": "Add Task",
+        "deleteConfirm": "Delete this cycle task?",
+        "editTask": "Edit Task",
+        "dragHint": "Drag tasks to reschedule. Double click to edit."
+    }
+}

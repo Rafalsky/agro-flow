@@ -163,8 +163,9 @@ and document them in `README.md`.
 When touching `infra/` and Docker, you MUST ensure:
 
 - `db` service is correctly initialised (migrations run, healthcheck passes).
-- `api` waits for DB readiness before starting (healthcheck + `depends_on` / retry logic).
-- `web` points to the internal API hostname (e.g. `http://api:3000`) in containers and `http://localhost:3000` in local dev, via env vars.
+- `api` waits for DB readiness before starting (healthcheck + `depends_on` condition `service_healthy`).
+- `api` automatically runs migrations and seeds on startup (`yarn seed` or equivalent). Seeds must be idempotent.
+- `web` points to the internal API hostname (e.g. `http://api:3000`) and waits for `api` to be healthy before starting.
 
 Environment variables must be:
 

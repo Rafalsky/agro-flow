@@ -1,0 +1,43 @@
+{
+    "nav": {
+        "board": "Tablica",
+        "workers": "Pracownicy",
+        "cycles": "Cykle",
+        "shifts": "Zmiany",
+        "logout": "Wyloguj"
+    },
+    "dashboard": {
+        "hello": "Witaj, {{name}}",
+        "status": "Status",
+        "online": "Online",
+        "offline": "Offline",
+        "todaysTasks": "Dzisiejsze zadania",
+        "loading": "Ładowanie zadań...",
+        "noTasks": "Brak zadań na dziś."
+    },
+    "panel": {
+        "title": "Panel Zootechnika"
+    },
+    "board": {
+        "title": "Tablica Zootechnika",
+        "newTicket": "Nowy Bilet",
+        "unassigned": "Nieprzypisane",
+        "dragHint": "Przeciągnij zadania do pracowników"
+    },
+    "shifts": {
+        "title": "Zarządzanie Zmianami",
+        "week": "Tydzień",
+        "save": "Zapisz Zmiany",
+        "saving": "Zapisywanie...",
+        "generate": "Generuj Sprint",
+        "generating": "Generowanie...",
+        "guide": "Kliknij, aby zmienić: Rano -> Popołudnie -> Wolne -> Rano."
+    },
+    "cycles": {
+        "title": "Definicje Cykli",
+        "addTask": "Dodaj Zadanie",
+        "deleteConfirm": "Czy na pewno usunąć to zadanie z cyklu?",
+        "editTask": "Edytuj Zadanie",
+        "dragHint": "Przeciągnij zadania, aby zmienić termin. Kliknij dwukrotnie, aby edytować."
+    }
+}

@@ -29,6 +29,23 @@ export class TicketsController {
         return this.ticketsService.findAll(where);
     }
 
+    @Get('board')
+    @Roles(UserRole.ZOOTECHNICIAN)
+    getBoard(@Query('date') date: string) {
+        const targetDate = date ? new Date(date) : new Date();
+        return this.ticketsService.getBoard(targetDate);
+    }
+
+    @Get('me/tasks')
+    @Roles(UserRole.WORKER)
+    getMyTasks(@CurrentAuth() user: User) {
+        if (!user) throw new UnauthorizedException();
+        // Default to today
+        const today = new Date();
+        // Normalize time if needed, but for now just pass Date object
+        return this.ticketsService.getWorkerTasks(user.id, today);
+    }
+
     @Patch(':id/start')
     @Roles(UserRole.WORKER)
     start(@Param('id') id: string, @Body('clientVersion', ParseIntPipe) clientVersion: number, @CurrentAuth() user: User) {
@@ -41,5 +58,23 @@ export class TicketsController {
     finish(@Param('id') id: string, @Body('clientVersion', ParseIntPipe) clientVersion: number, @Body('data') data: any, @CurrentAuth() user: User) {
         if (!user) throw new UnauthorizedException();
         return this.ticketsService.finishTask(id, user.id, clientVersion, data);
+    }
+
+    @Patch(':id')
+    @Roles(UserRole.ZOOTECHNICIAN)
+    update(
+        @Param('id') id: string,
+        @Body() data: Prisma.TicketUpdateInput,
+        @Body('version', ParseIntPipe) version: number,
+        @CurrentAuth() user: User
+    ) {
+        // Enforce optimistic locking
+        if (version === undefined) {
+            // If client doesn't send version, we might skip check or throw bad request.
+            // For safety, let's require it, or default to generic update if not critical?
+            // Board DnD should handle optimistic locking.
+            throw new UnauthorizedException('Version is required for updates');
+        }
+        return this.ticketsService.update(id, data, version);
     }
 }
