@@ -53,6 +53,7 @@ model User {
   taskEvents       TaskEvent[]
   activationTokens ActivationToken[]
   magicLinks       MagicLink[]
+  comments         Comment[]
 }
 
 model AuthToken {
@@ -104,6 +105,7 @@ model Ticket {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   history     TaskEvent[]
+  comments    Comment[]
 }
 
 model TaskEvent {
@@ -148,4 +150,15 @@ model Sprint {
   createdAt DateTime @default(now())
 
   @@unique([startDate])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  ticketId  String
+  authorId  String
+  createdAt DateTime @default(now())
+
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id])
 }

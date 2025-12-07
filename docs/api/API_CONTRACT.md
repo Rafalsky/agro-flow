@@ -172,13 +172,17 @@ POST /api/calendars/cycle
 Creates or updates CYCLE templates.
 (Details omitted here – implementation specific, but must follow domain model in CALENDARS.md.)
 
-GET /api/calendars/shifts?sprintStart=YYYY-MM-DD
+GET /api/shifts?date=YYYY-MM-DD
 
-Returns shift / vacation assignments for the sprint.
+Returns shift assignments for a specific date.
 
-POST /api/calendars/shifts
+Auth: role = zootechnician.
 
-Creates/updates ShiftAssignment records.
+**Alternative:** `GET /api/shifts?start=YYYY-MM-DD&end=YYYY-MM-DD` for date ranges.
+
+POST /api/shifts/bulk
+
+Creates/updates ShiftAssignment records in bulk.
 
 Sprint Management
 POST /api/sprint/generate

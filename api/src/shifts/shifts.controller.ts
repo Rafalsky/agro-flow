@@ -27,8 +27,21 @@ export class ShiftsController {
     }
 
     @Get()
-    findAll(@Query('start') start: string, @Query('end') end: string) {
-        if (!start || !end) throw new BadRequestException('Start and End dates required');
-        return this.shiftsService.findAll(new Date(start), new Date(end));
+    findAll(
+        @Query('date') date?: string,
+        @Query('start') start?: string,
+        @Query('end') end?: string
+    ) {
+        // Support single date OR date range
+        if (date) {
+            // Single date: return shifts for that specific day
+            const targetDate = new Date(date);
+            return this.shiftsService.findAll(targetDate, targetDate);
+        } else if (start && end) {
+            // Date range
+            return this.shiftsService.findAll(new Date(start), new Date(end));
+        } else {
+            throw new BadRequestException('Provide either "date" parameter or both "start" and "end" parameters');
+        }
     }
 }
