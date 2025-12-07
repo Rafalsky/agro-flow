@@ -2,25 +2,29 @@ import { useState, useEffect } from 'react';
 import { api } from '../lib/api';
 import type { User } from '../types';
 import { format, startOfWeek, addDays, getISOWeek } from 'date-fns';
-import { ChevronLeft, ChevronRight, Save, Play } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 
 interface Shift {
     workerId: string;
     date: string;
-    timeSlot: 'FULL'; // Simplification for grid
-    status: 'MORNING' | 'AFTERNOON' | 'ON_LEAVE' | 'WORKING'; // Added legacy support for type safety until refactored
+    timeSlot: 'FULL';
+    status: 'MORNING' | 'AFTERNOON' | 'ON_LEAVE';
 }
 
 export default function ShiftsPage() {
     const [workers, setWorkers] = useState<User[]>([]);
-    const [shifts, setShifts] = useState<Shift[]>([]); // Flattened local state
+    const [shifts, setShifts] = useState<Shift[]>([]);
     const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
     const [loading, setLoading] = useState(true);
     const [generating, setGenerating] = useState(false);
-    const [saving, setSaving] = useState(false);
+    const [notification, setNotification] = useState<string | null>(null);
 
-    // Generate 7 days
     const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(currentWeekStart, i));
+
+    const showNotification = (message: string) => {
+        setNotification(message);
+        setTimeout(() => setNotification(null), 2000);
+    };
 
     const initializeData = async () => {
         try {
@@ -30,11 +34,9 @@ export default function ShiftsPage() {
                 api.get(`/shifts?start=${weekDays[0].toISOString()}&end=${weekDays[6].toISOString()}`)
             ]);
 
-            setWorkers(usersReq.data.filter((u: any) => u.isActive !== false));
+            const activeWorkers = usersReq.data.filter((u: any) => u.isActive !== false && u.role === 'WORKER');
+            setWorkers(activeWorkers);
 
-            // Flatten shifts into simpler structure
-            // Backend returns ShiftAssignments. 
-            // We assume for MVP: 1 Shift = 1 Day. If 'WORKING' -> present.
             const flatShifts = shiftsReq.data.map((s: any) => ({
                 workerId: s.workerId,
                 date: s.date.split('T')[0],
@@ -54,46 +56,44 @@ export default function ShiftsPage() {
         initializeData();
     }, [currentWeekStart]);
 
-    const getStatus = (workerId: string, dateStr: string) => {
+    const getStatus = (workerId: string, dateStr: string): 'MORNING' | 'AFTERNOON' | 'ON_LEAVE' => {
         const shift = shifts.find(s => s.workerId === workerId && s.date === dateStr);
-        // Default visualization if needed, but for now stick to what is in state
-        return shift ? shift.status : null; // null means "Morning" by default? User said "defaults to morning". 
-        // If "defaults to morning", then lack of record should be visualized as morning?
-        // Let's assume explicit records for now to be safe, or treat null as Morning.
-        // User request: "domyslnie morning".
-        // Let's treat valid record as override. If no record, maybe show Morning placeholder?
-        // Actually, safer to just cycle through explicit states for MVP consistency.
-        // Let's stick to: undefined -> MORNING -> AFTERNOON -> ON_LEAVE -> MORNING.
+        return shift ? shift.status : 'MORNING';
     };
 
-    const handleCellClick = (workerId: string, dateStr: string) => {
+    const handleCellClick = async (workerId: string, dateStr: string) => {
+        const currentStatus = getStatus(workerId, dateStr);
+        let newStatus: 'MORNING' | 'AFTERNOON' | 'ON_LEAVE';
+
+        if (currentStatus === 'MORNING') newStatus = 'AFTERNOON';
+        else if (currentStatus === 'AFTERNOON') newStatus = 'ON_LEAVE';
+        else newStatus = 'MORNING';
+
+        // Optimistic update
         setShifts(prev => {
             const exists = prev.find(s => s.workerId === workerId && s.date === dateStr);
-
-            if (!exists) {
-                // Default was "Morning" visually? If so, clicking it should go to Afternoon?
-                // Or if we treat "No Record" as "Unassigned/Morning", this gets complex.
-                // Let's implemented standard: No Record -> Morning -> Afternoon -> On Leave -> Morning
-                return [...prev, { workerId, date: dateStr, timeSlot: 'FULL', status: 'MORNING' } as any];
+            if (exists) {
+                return prev.map(s => s === exists ? { ...s, status: newStatus } : s);
+            } else {
+                return [...prev, { workerId, date: dateStr, timeSlot: 'FULL', status: newStatus }];
             }
-
-            if (exists.status === 'MORNING') return prev.map(s => s === exists ? { ...s, status: 'AFTERNOON' } : s) as any;
-            if (exists.status === 'AFTERNOON') return prev.map(s => s === exists ? { ...s, status: 'ON_LEAVE' } : s) as any;
-
-            // If ON_LEAVE -> Back to MORNING
-            return prev.map(s => s === exists ? { ...s, status: 'MORNING' } : s) as any;
         });
-    };
 
-    const handleSave = async () => {
+        // Save to backend
         try {
-            setSaving(true);
-            await api.post('/shifts/bulk', shifts);
-            // Reload to sync
-            await initializeData();
-            alert('Saved!');
-        } catch (e) { console.error(e); alert('Failed to save'); }
-        finally { setSaving(false); }
+            await api.post('/shifts', {
+                workerId,
+                date: dateStr,
+                timeSlot: 'FULL',
+                status: newStatus
+            });
+            showNotification('Change Saved');
+        } catch (e) {
+            console.error('Failed to save shift', e);
+            showNotification('Save Failed');
+            // Revert on error
+            initializeData();
+        }
     };
 
     const handleGenerateSprint = async () => {
@@ -103,10 +103,10 @@ export default function ShiftsPage() {
             await api.post('/sprint/generate', {
                 weekStart: currentWeekStart.toISOString()
             });
-            alert('Sprint generated!');
+            showNotification('Sprint generated!');
         } catch (e) {
             console.error(e);
-            alert('Generation failed');
+            showNotification('Generation failed');
         } finally { setGenerating(false); }
     };
 
@@ -114,6 +114,24 @@ export default function ShiftsPage() {
 
     return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            {notification && (
+                <div style={{
+                    position: 'fixed',
+                    top: '80px',
+                    right: '20px',
+                    backgroundColor: 'var(--color-primary)',
+                    color: 'var(--color-primary-text)',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '4px',
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.3)',
+                    zIndex: 1000,
+                    fontWeight: 600,
+                    fontSize: '0.875rem'
+                }}>
+                    {notification}
+                </div>
+            )}
+
             <header className="glass-panel" style={{
                 padding: '1.5rem 2rem',
                 borderRadius: 0,
@@ -132,9 +150,6 @@ export default function ShiftsPage() {
                 </div>
 
                 <div style={{ display: 'flex', gap: '1rem' }}>
-                    <button className="btn btn-primary" onClick={handleSave} disabled={saving} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        <Save size={18} /> {saving ? 'Saving...' : 'Save Shifts'}
-                    </button>
                     <button className="btn" onClick={handleGenerateSprint} disabled={generating} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', backgroundColor: '#8b5cf6', color: 'white', border: 'none' }}>
                         <Play size={18} /> {generating ? 'Generating...' : 'Generate Sprint'}
                     </button>
@@ -170,19 +185,17 @@ export default function ShiftsPage() {
                                                     style={{
                                                         width: '100%', height: '40px', borderRadius: '0.5rem', border: 'none', cursor: 'pointer',
                                                         backgroundColor:
-                                                            status === 'MORNING' ? 'rgba(251, 191, 36, 0.4)' : // Amber
-                                                                status === 'AFTERNOON' ? 'rgba(59, 130, 246, 0.4)' : // Blue
-                                                                    status === 'ON_LEAVE' ? 'rgba(239, 68, 68, 0.4)' : // Red
-                                                                        'rgba(255,255,255,0.05)', // Default/Empty
-                                                        color: status ? 'white' : 'rgba(255,255,255,0.2)',
+                                                            status === 'MORNING' ? 'rgba(251, 191, 36, 0.4)' :
+                                                                status === 'AFTERNOON' ? 'rgba(59, 130, 246, 0.4)' :
+                                                                    'rgba(239, 68, 68, 0.4)',
+                                                        color: 'white',
                                                         fontSize: '0.75rem',
                                                         transition: 'all 0.1s',
                                                         fontWeight: 500
                                                     }}
                                                 >
                                                     {status === 'MORNING' ? 'MORNING' :
-                                                        status === 'AFTERNOON' ? 'AFTERNOON' :
-                                                            status === 'ON_LEAVE' ? 'OFF' : '-'}
+                                                        status === 'AFTERNOON' ? 'EVENING' : 'OFF'}
                                                 </button>
                                             </td>
                                         );
@@ -194,7 +207,7 @@ export default function ShiftsPage() {
                 </div>
 
                 <div style={{ marginTop: '1.5rem', fontSize: '0.875rem', color: 'rgba(255,255,255,0.5)' }}>
-                    <p>Click details: Loop &rarr; [Empty] &rarr; [Working] &rarr; [Off] &rarr; [Empty]. Ensure to Save after changes.</p>
+                    <p>Click to cycle: MORNING → EVENING → OFF → MORNING. Changes save automatically.</p>
                 </div>
             </div>
         </div>
