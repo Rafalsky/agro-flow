@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { api } from '../lib/api';
-import type { Ticket } from '../types';
+import type { Ticket, User } from '../types';
 import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
 
 export function useBoardTickets(date?: string) {
     const [tickets, setTickets] = useState<Ticket[]>([]);
+    const [workers, setWorkers] = useState<User[]>([]);
+    const [shifts, setShifts] = useState<Record<string, string>>({}); // WorkerID -> Status
     const [loading, setLoading] = useState(true);
     const { socket } = useSocket();
     const { user } = useAuth(); // Authenticated as Zootechnician
@@ -14,16 +16,27 @@ export function useBoardTickets(date?: string) {
         try {
             setLoading(true);
             const query = date ? `?date=${date}` : '';
-            const { data } = await api.get(`/tickets/board${query}`);
-            setTickets(data);
-            // Hack: For now, we only show workers who have tasks or we need a list.
-            // Let's implement a quick worker fetch or just rely on tickets for MVP?
-            // M8 plan says "Swimlanes (Workers)". Without full worker list, we can't show empty swimlanes.
-            // Let's try to infer from unique assignees in tickets + maybe a hardcoded list for demo 
-            // OR just add a quick fetch later if critical. 
-            // For now, let's stick to simple state.
+            const [ticketsReq, usersReq, shiftsReq] = await Promise.all([
+                api.get(`/tickets/board${query}`),
+                api.get('/users'),
+                api.get(`/shifts${query}`) // Assuming this endpoint exists and filters by date
+            ]);
+
+            setTickets(ticketsReq.data);
+            // Filter only active workers
+            setWorkers(usersReq.data.filter((u: any) => u.isActive !== false && u.role === 'WORKER'));
+
+            // Process shifts into a map
+            const shiftMap: Record<string, string> = {};
+            if (Array.isArray(shiftsReq.data)) {
+                shiftsReq.data.forEach((s: any) => {
+                    shiftMap[s.workerId] = s.status;
+                });
+            }
+            setShifts(shiftMap);
+
         } catch (error) {
-            console.error('Failed to fetch board', error);
+            console.error('Failed to fetch board data', error);
         } finally {
             setLoading(false);
         }
@@ -76,5 +89,5 @@ export function useBoardTickets(date?: string) {
         }
     };
 
-    return { tickets, loading, updateTicket, refetch: fetchBoard };
+    return { tickets, workers, shifts, loading, updateTicket, refresh: fetchBoard, refetch: fetchBoard };
 }

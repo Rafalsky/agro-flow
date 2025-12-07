@@ -8,7 +8,7 @@ interface Shift {
     workerId: string;
     date: string;
     timeSlot: 'FULL'; // Simplification for grid
-    status: 'WORKING' | 'ON_LEAVE';
+    status: 'MORNING' | 'AFTERNOON' | 'ON_LEAVE' | 'WORKING'; // Added legacy support for type safety until refactored
 }
 
 export default function ShiftsPage() {
@@ -169,15 +169,20 @@ export default function ShiftsPage() {
                                                     onClick={() => handleCellClick(worker.id, dateStr)}
                                                     style={{
                                                         width: '100%', height: '40px', borderRadius: '0.5rem', border: 'none', cursor: 'pointer',
-                                                        backgroundColor: status === 'WORKING' ? 'rgba(34, 197, 94, 0.4)' :
-                                                            status === 'ON_LEAVE' ? 'rgba(239, 68, 68, 0.4)' :
-                                                                'rgba(255,255,255,0.05)',
+                                                        backgroundColor:
+                                                            status === 'MORNING' ? 'rgba(251, 191, 36, 0.4)' : // Amber
+                                                                status === 'AFTERNOON' ? 'rgba(59, 130, 246, 0.4)' : // Blue
+                                                                    status === 'ON_LEAVE' ? 'rgba(239, 68, 68, 0.4)' : // Red
+                                                                        'rgba(255,255,255,0.05)', // Default/Empty
                                                         color: status ? 'white' : 'rgba(255,255,255,0.2)',
                                                         fontSize: '0.75rem',
-                                                        transition: 'all 0.1s'
+                                                        transition: 'all 0.1s',
+                                                        fontWeight: 500
                                                     }}
                                                 >
-                                                    {status === 'WORKING' ? 'WORKING' : status === 'ON_LEAVE' ? 'OFF' : '-'}
+                                                    {status === 'MORNING' ? 'MORNING' :
+                                                        status === 'AFTERNOON' ? 'AFTERNOON' :
+                                                            status === 'ON_LEAVE' ? 'OFF' : '-'}
                                                 </button>
                                             </td>
                                         );

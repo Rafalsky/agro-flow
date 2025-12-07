@@ -36,6 +36,8 @@
     "cycles": {
         "title": "Definicje Cykli",
         "addTask": "Dodaj Zadanie",
-        "deleteConfirm": "Czy na pewno usunąć to zadanie z cyklu?"
+        "deleteConfirm": "Czy na pewno usunąć to zadanie z cyklu?",
+        "editTask": "Edytuj Zadanie",
+        "dragHint": "Przeciągnij zadania, aby zmienić termin. Kliknij dwukrotnie, aby edytować."
     }
 }

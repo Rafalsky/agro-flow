@@ -36,6 +36,8 @@
     "cycles": {
         "title": "Cycle Definitions",
         "addTask": "Add Task",
-        "deleteConfirm": "Delete this cycle task?"
+        "deleteConfirm": "Delete this cycle task?",
+        "editTask": "Edit Task",
+        "dragHint": "Drag tasks to reschedule. Double click to edit."
     }
 }

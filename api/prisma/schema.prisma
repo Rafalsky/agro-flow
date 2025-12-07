@@ -140,3 +140,12 @@ model ShiftAssignment {
   status    ShiftStatus
   @@unique([workerId, date, timeSlot])
 }
+
+model Sprint {
+  id        String   @id @default(uuid())
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  @@unique([startDate])
+}

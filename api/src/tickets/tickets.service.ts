@@ -55,16 +55,98 @@ export class TicketsService {
         return d;
     }
 
-    async getBoard(date: Date): Promise<Ticket[]> {
-        // Since plannedDate is @db.Date, we should match purely by date.
-        // Prisma usually handles Date objects for @db.Date by ignoring user time, but explicit range is safer or strict midnight.
-        // Let's assume strict equality requires normalized date if usage is consistent.
-        // Better: usage of a range is safest for timestamps, but for @db.Date exact match might work if input is normalized.
-        // Let's try explicit normalized date.
+    private getMonday(d: Date): Date {
+        const date = new Date(d);
+        const day = date.getDay();
+        const diff = date.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+        date.setHours(0, 0, 0, 0);
+        return new Date(date); // return new instance
+    }
 
-        // Actually, best practice with Prisma @db.Date is to pass a Date object.
-        // Let's normalize incoming date to ensure no time component mismatch if driver is sensitive.
+    private async ensureSprint(date: Date): Promise<void> {
+        const monday = this.getMonday(date);
+
+        // 1. Check if sprint exists
+        const sprint = await this.prisma.sprint.findUnique({
+            where: { startDate: monday }
+        });
+
+        if (sprint) return;
+
+        // 2. Generate Sprint
+        await this.generateSprint(monday);
+    }
+
+    private async generateSprint(monday: Date): Promise<void> {
+        // Calculate Sunday
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+
+        // Fetch Cycles
+        const cycles = await this.prisma.cycleDefinition.findMany({
+            where: { isActive: true }
+        });
+
+        const newTickets: Prisma.TicketCreateManyInput[] = [];
+
+        cycles.forEach(cycle => {
+            // Calculate target date for this cycle instance
+            // cycle.dayOfWeek: 0(Sun) or 1(Mon)-6(Sat). 
+            // We need 1=Mon...0=Sun logic relative to Monday.
+            // Offset from Monday:
+            // 1 (Mon) -> 0
+            // 2 (Tue) -> 1
+            // ...
+            // 0 (Sun) -> 6
+            const cycleDay = cycle.dayOfWeek;
+            const offset = (cycleDay === 0 ? 7 : cycleDay) - 1;
+
+            const targetDate = new Date(monday);
+            targetDate.setDate(monday.getDate() + offset);
+
+            // Should created specific time? 
+            // plannedDate is @db.Date, so time acts as midnight.
+            // But we should normalize.
+            // targetDate is already based on normalized Monday.
+
+            newTickets.push({
+                type: 'CYCLE_INSTANCE', // TicketType.CYCLE_INSTANCE
+                title: cycle.title,
+                description: cycle.description,
+                area: cycle.area,
+                plannedDate: targetDate,
+                timeSlot: cycle.timeSlot,
+                status: 'TODO', // TicketStatus.TODO
+                storyPoints: cycle.storyPoints,
+                checklist: cycle.checklist ?? undefined,
+                data: cycle.data ?? undefined,
+                sourceCycleId: cycle.id,
+                version: 1,
+                assigneeId: null // Goes to unassigned by default
+            });
+        });
+
+        // Transaction: Create Sprint + Tickets
+        await this.prisma.$transaction([
+            this.prisma.sprint.create({
+                data: {
+                    startDate: monday,
+                    endDate: sunday
+                }
+            }),
+            this.prisma.ticket.createMany({
+                data: newTickets
+            })
+        ]);
+
+        // Emit event? Maybe not needed for lazy gen, user will refresh or see it.
+    }
+
+    async getBoard(date: Date): Promise<Ticket[]> {
         const d = this.normalizeDate(date);
+
+        // Ensure sprint exists for this WEEK
+        await this.ensureSprint(d);
 
         return this.prisma.ticket.findMany({
             where: {

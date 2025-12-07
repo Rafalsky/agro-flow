@@ -1,7 +1,7 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
-import { LanguageSwitcher } from '../components/LanguageSwitcher';
+
 import {
     LayoutDashboard,
     Users,
