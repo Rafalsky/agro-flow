@@ -3,11 +3,7 @@ import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, TouchSen
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { useBoardTickets } from '../hooks/useBoardTickets';
 import { TicketCard } from '../components/TicketCard';
-import { CreateTicketModal } from '../components/CreateTicketModal';
-import { LanguageSwitcher } from '../components/LanguageSwitcher';
-import { useAuth } from '../context/AuthContext';
 import type { Ticket } from '../types';
-import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useDroppable } from '@dnd-kit/core';
 
@@ -117,12 +113,11 @@ const weekDays = Array.from({ length: 7 }, (_, i) => {
 });
 
 export default function BoardView() {
-    const { logout } = useAuth();
     const { t } = useTranslation();
     const [selectedDate, setSelectedDate] = useState(getDateStr(today));
     const { tickets, workers, shifts, loading, updateTicket, refresh } = useBoardTickets(selectedDate);
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeId, setActiveId] = useState<string | null>(null);
+
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -182,28 +177,6 @@ export default function BoardView() {
 
     return (
         <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-            <header className="glass-panel" style={{
-                padding: '1rem 2rem',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                borderRadius: 0,
-                border: 'none',
-                borderBottom: '1px solid rgba(255,255,255,0.1)'
-            }}>
-                <h1 style={{ fontSize: '1.25rem' }}>{t('board.title')}</h1>
-
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                    <button className="btn btn-primary" onClick={() => setIsModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Plus size={18} /> {t('board.newTicket')}
-                    </button>
-
-                    <LanguageSwitcher />
-
-                    <button className="btn glass-panel" onClick={logout}>{t('nav.logout')}</button>
-                </div>
-            </header>
-
             <div style={{ padding: '0 2rem', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)' }}>
                 {/* Desktop Tabs */}
                 <div className="hidden md:flex" style={{ display: 'flex', gap: '1px' }}>
@@ -288,15 +261,7 @@ export default function BoardView() {
                 </DndContext>
             </div>
 
-            {isModalOpen && (
-                <CreateTicketModal
-                    workers={workers}
-                    onClose={() => {
-                        setIsModalOpen(false);
-                        refresh(); // Refresh on close to catch new ticket
-                    }}
-                />
-            )}
+
         </div>
     );
 }

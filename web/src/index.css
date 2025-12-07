@@ -1,28 +1,27 @@
 :root {
-  /* Colors */
-  --color-bg-dark: #0f172a;
-  --color-bg-card: #1e293b;
-  --color-bg-glass: rgba(30, 41, 59, 0.7);
-  
-  --color-primary: #10b981; /* Emerald 500 */
-  --color-primary-hover: #059669;
+  /* Colors - Luna Admin Theme */
+  --color-bg-dark: #1f2129;
+  --color-bg-card: #2a2d3a;
+  --color-bg-hover: rgba(255, 255, 255, 0.05);
 
-  --color-accent: #3b82f6; /* Blue 500 */
-  
-  --color-text-main: #f8fafc;
-  --color-text-muted: #94a3b8;
-  
+  --color-primary: #f5b942;
+  /* Luna Gold */
+  --color-primary-hover: #e5a932;
+  --color-primary-text: #1f2129;
+
+  --color-accent: #f5b942;
+
+  --color-text-main: #ffffff;
+  --color-text-muted: #9ca3af;
+
   --color-danger: #ef4444;
   --color-warning: #f59e0b;
   --color-success: #10b981;
 
+  --color-border: #3f4252;
+
   /* Typography */
   --font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
-
-  /* Glassmorphism */
-  --glass-border: 1px solid rgba(255, 255, 255, 0.1);
-  --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  --backdrop-blur: blur(10px);
 }
 
 body {
@@ -41,28 +40,29 @@ body {
 
 /* Utilities */
 .glass-panel {
-  background: var(--color-bg-glass);
-  backdrop-filter: var(--backdrop-blur);
-  -webkit-backdrop-filter: var(--backdrop-blur);
-  border: var(--glass-border);
-  box-shadow: var(--glass-shadow);
-  border-radius: 16px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border-radius: 4px;
+  /* More square as per Luna theme */
 }
 
 .btn {
-  padding: 0.6em 1.2em;
-  border-radius: 8px;
-  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.25s;
+  transition: all 0.2s;
   border: none;
-  font-size: 1rem;
+  font-size: 0.875rem;
+  letter-spacing: 0.025em;
 }
 
 .btn-primary {
   background-color: var(--color-primary);
-  color: white;
+  color: var(--color-primary-text);
 }
+
 .btn-primary:hover {
   background-color: var(--color-primary-hover);
 }
