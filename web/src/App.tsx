@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import Login from './pages/Login';
+import ActivatePage from './pages/ActivatePage';
 import WorkerDashboard from './pages/WorkerDashboard';
 import BoardView from './pages/BoardView';
 import WorkersPage from './pages/WorkersPage';
@@ -40,6 +41,7 @@ function App() {
         <SocketProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/activate" element={<ActivatePage />} />
 
             {/* Worker Home */}
             <Route path="/" element={

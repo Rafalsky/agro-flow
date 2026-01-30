@@ -27,6 +27,11 @@ export class UsersController {
         return this.usersService.findOne(id);
     }
 
+    @Post(':id/activation-link')
+    async generateActivationLink(@Param('id') id: string) {
+        return this.usersService.generateActivationLink(id);
+    }
+
     @Patch(':id')
     update(@Param('id') id: string, @Body() updateUserDto: Prisma.UserUpdateInput) {
         return this.usersService.update(id, updateUserDto);

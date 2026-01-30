@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../lib/api';
 import type { User } from '../types';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Copy } from 'lucide-react';
 
 export default function WorkersPage() {
     const [workers, setWorkers] = useState<User[]>([]);
@@ -48,6 +48,18 @@ export default function WorkersPage() {
         }
     };
 
+    const handleCopyLink = async (userId: string, displayName: string) => {
+        try {
+            const { data } = await api.post(`/users/${userId}/activation-link`);
+            await navigator.clipboard.writeText(data.activationLink);
+            const expiryDate = new Date(data.expiresAt).toLocaleString();
+            alert(`✅ Activation link for ${displayName} copied to clipboard!\n\nExpires: ${expiryDate}\n\nSend this link via SMS/WhatsApp.`);
+        } catch (e) {
+            console.error(e);
+            alert('❌ Failed to generate activation link');
+        }
+    };
+
     if (loading) return <div className="p-8">Loading...</div>;
 
     return (
@@ -87,13 +99,23 @@ export default function WorkersPage() {
                                 </td>
                                 <td style={{ padding: '1rem', fontFamily: 'monospace', opacity: 0.5 }}>{w.id.slice(0, 8)}...</td>
                                 <td style={{ padding: '1rem', textAlign: 'right' }}>
-                                    <button
-                                        onClick={() => handleDelete(w.id)}
-                                        className="btn"
-                                        style={{ padding: '0.5rem', color: '#fca5a5' }}
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
+                                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                                        <button
+                                            onClick={() => handleCopyLink(w.id, w.displayName)}
+                                            className="btn"
+                                            style={{ padding: '0.5rem', color: '#86efac' }}
+                                            title="Generate and copy activation link"
+                                        >
+                                            <Copy size={16} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(w.id)}
+                                            className="btn"
+                                            style={{ padding: '0.5rem', color: '#fca5a5' }}
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}

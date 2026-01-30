@@ -1,6 +1,7 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Prisma, User, UserRole } from '@prisma/client';
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class UsersService {
@@ -54,5 +55,37 @@ export class UsersService {
             where: { id },
             data: { isActive: false }
         });
+    }
+
+    async generateActivationLink(userId: string): Promise<{
+        activationLink: string;
+        token: string;
+        expiresAt: Date;
+    }> {
+        // Verify user exists
+        const user = await this.findOne(userId);
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        // Generate cryptographically secure token
+        const token = randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+        // Store activation token
+        await this.prisma.activationToken.create({
+            data: {
+                token,
+                userId,
+                expiresAt,
+                isRevoked: false,
+            }
+        });
+
+        // Construct activation link
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const activationLink = `${frontendUrl}/activate?token=${token}`;
+
+        return { activationLink, token, expiresAt };
     }
 }

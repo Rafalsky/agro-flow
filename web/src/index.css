@@ -1,24 +1,27 @@
 :root {
-  /* Colors - Luna Admin Theme */
-  --color-bg-dark: #1f2129;
-  --color-bg-card: #2a2d3a;
-  --color-bg-hover: rgba(255, 255, 255, 0.05);
+  /* Colors - EcoFarm Theme (Light) */
+  --color-bg-main: #fcfbf9; /* Light cream warm background */
+  --color-bg-card: #ffffff;
+  --color-bg-hover: rgba(0, 0, 0, 0.05);
 
-  --color-primary: #f5b942;
-  /* Luna Gold */
-  --color-primary-hover: #e5a932;
-  --color-primary-text: #1f2129;
+  --color-primary: #eab308; /* Sunshine Yellow/Gold */
+  --color-primary-hover: #ca8a04;
+  --color-primary-text: #ffffff;
 
-  --color-accent: #f5b942;
+  --color-accent: #65a30d; /* Plant Green */
 
-  --color-text-main: #ffffff;
-  --color-text-muted: #9ca3af;
+  --color-text-main: #1f2937; /* Gray 800 */
+  --color-text-muted: #6b7280; /* Gray 500 */
 
   --color-danger: #ef4444;
   --color-warning: #f59e0b;
   --color-success: #10b981;
 
-  --color-border: #3f4252;
+  --color-border: #e5e7eb; /* Gray 200 */
+  
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 
   /* Typography */
   --font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -29,7 +32,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   font-family: var(--font-family);
-  background-color: var(--color-bg-dark);
+  background-color: var(--color-bg-main);
   color: var(--color-text-main);
   line-height: 1.5;
   font-synthesis: none;
@@ -39,12 +42,11 @@ body {
 }
 
 /* Utilities */
-.glass-panel {
+.card {
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  border-radius: 4px;
-  /* More square as per Luna theme */
+  box-shadow: var(--shadow-sm);
+  border-radius: 12px; /* Softer rounded corners */
 }
 
 .btn {

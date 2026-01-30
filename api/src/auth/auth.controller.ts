@@ -32,6 +32,44 @@ export class AuthController {
         }
     }
 
+    // TEMPORARY DEBUG ENDPOINT - REMOVE IN PRODUCTION
+    @Get('debug/check-token')
+    async debugCheckToken(@Query('token') token: string) {
+        if (!token) {
+            return { error: 'No token provided' };
+        }
+
+        const tokenRecord = await this.authService['prisma'].activationToken.findUnique({
+            where: { token },
+            select: {
+                token: true,
+                userId: true,
+                expiresAt: true,
+                usedAt: true,
+                isRevoked: true,
+                createdAt: true,
+            }
+        });
+
+        if (!tokenRecord) {
+            return { exists: false, message: 'Token not found in database' };
+        }
+
+        const now = new Date();
+        return {
+            exists: true,
+            tokenPreview: token.substring(0, 16) + '...',
+            userId: tokenRecord.userId,
+            expiresAt: tokenRecord.expiresAt,
+            isExpired: tokenRecord.expiresAt < now,
+            usedAt: tokenRecord.usedAt,
+            isUsed: !!tokenRecord.usedAt,
+            isRevoked: tokenRecord.isRevoked,
+            createdAt: tokenRecord.createdAt,
+            isValid: !tokenRecord.isRevoked && !tokenRecord.usedAt && tokenRecord.expiresAt > now
+        };
+    }
+
     @Get('magic')
     async magic(@Query('token') token: string, @Res() res: any) {
         if (!token) {

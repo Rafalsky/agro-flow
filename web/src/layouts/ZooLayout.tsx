@@ -44,11 +44,11 @@ export default function ZooLayout() {
     ];
 
     return (
-        <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden', backgroundColor: 'var(--color-bg-dark)' }}>
+        <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden', backgroundColor: 'var(--color-bg-main)' }}>
 
             {/* Sidebar */}
             <aside style={{
-                width: isSidebarOpen ? '240px' : '0px',
+                width: isSidebarOpen ? '260px' : '0px',
                 transition: 'width 0.3s ease',
                 backgroundColor: 'var(--color-bg-card)',
                 borderRight: '1px solid var(--color-border)',
@@ -58,23 +58,25 @@ export default function ZooLayout() {
                 position: 'relative',
                 zIndex: 20
             }}>
-                <div style={{ height: '64px', display: 'flex', alignItems: 'center', padding: '0 1.5rem', borderBottom: '1px solid var(--color-border)' }}>
+                <div style={{ height: '70px', display: 'flex', alignItems: 'center', padding: '0 1.5rem', borderBottom: '1px solid var(--color-border)' }}>
                     <div style={{
-                        width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--color-primary)',
+                        width: '36px', height: '36px', borderRadius: '10px', backgroundColor: 'var(--color-primary)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '0.75rem',
-                        fontWeight: 'bold', color: 'var(--color-bg-dark)'
-                    }}>L</div>
-                    <span style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-text-main)', letterSpacing: '0.5px' }}>
-                        AGRO FLOW
+                        fontWeight: 'bold', color: 'var(--color-primary-text)', fontSize: '1.2rem'
+                    }}>
+                        <RefreshCw size={20} />
+                    </div>
+                    <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text-main)', letterSpacing: '-0.5px' }}>
+                        EcoFarm
                     </span>
                 </div>
 
-                <div style={{ padding: '1rem 0', flex: 1 }}>
+                <div style={{ padding: '1.5rem 1rem', flex: 1 }}>
                     <div style={{
-                        padding: '0 1.5rem', marginBottom: '1rem',
-                        fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: 600
+                        padding: '0 1rem', marginBottom: '0.75rem',
+                        fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: 600, letterSpacing: '0.05em'
                     }}>
-                        Main
+                        Menu
                     </div>
                     <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                         {navItems.map(item => {
@@ -88,23 +90,24 @@ export default function ZooLayout() {
                                         display: 'flex',
                                         alignItems: 'center',
                                         gap: '0.75rem',
-                                        padding: '0.75rem 1.5rem',
-                                        color: isActive ? 'var(--color-text-main)' : 'var(--color-text-muted)',
+                                        padding: '0.75rem 1rem',
+                                        color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
                                         textDecoration: 'none',
                                         transition: 'all 0.2s',
-                                        borderLeft: isActive ? '3px solid var(--color-primary)' : '3px solid transparent',
-                                        backgroundColor: isActive ? 'rgba(245, 185, 66, 0.05)' : 'transparent'
+                                        borderRadius: '8px',
+                                        backgroundColor: isActive ? 'rgba(234, 179, 8, 0.1)' : 'transparent',
+                                        fontWeight: isActive ? 600 : 500
                                     }}
                                 >
-                                    <Icon size={18} color={isActive ? 'var(--color-primary)' : 'currentColor'} />
-                                    <span style={{ fontWeight: isActive ? 500 : 400 }}>{item.label}</span>
+                                    <Icon size={20} />
+                                    <span>{item.label}</span>
                                 </Link>
                             );
                         })}
                     </nav>
                 </div>
 
-                <div style={{ padding: '1rem' }}>
+                <div style={{ padding: '1.5rem' }}>
                     <button
                         onClick={logout}
                         style={{
@@ -113,13 +116,21 @@ export default function ZooLayout() {
                             gap: '0.75rem',
                             padding: '0.75rem 1rem',
                             width: '100%',
-                            borderRadius: '4px',
-                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                            color: '#fca5a5',
-                            border: 'none',
+                            borderRadius: '8px',
+                            backgroundColor: 'transparent',
+                            color: 'var(--color-text-muted)',
+                            border: '1px solid var(--color-border)',
                             cursor: 'pointer',
                             textAlign: 'left',
-                            transition: 'background 0.2s'
+                            transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = 'var(--color-danger)';
+                            e.currentTarget.style.color = 'var(--color-danger)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = 'var(--color-border)';
+                            e.currentTarget.style.color = 'var(--color-text-muted)';
                         }}
                     >
                         <LogOut size={18} />
@@ -133,56 +144,47 @@ export default function ZooLayout() {
 
                 {/* Topbar */}
                 <header style={{
-                    height: '64px',
-                    backgroundColor: 'var(--color-bg-dark)',
+                    height: '70px',
+                    backgroundColor: 'var(--color-bg-card)',
                     borderBottom: '1px solid var(--color-border)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '0 1.5rem'
+                    padding: '0 2rem'
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
                         <button
                             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                            style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer' }}
+                            style={{
+                                background: 'transparent',
+                                border: '1px solid var(--color-border)',
+                                borderRadius: '8px',
+                                width: '36px',
+                                height: '36px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'var(--color-text-main)',
+                                cursor: 'pointer'
+                            }}
                         >
                             <Menu size={20} />
                         </button>
-                        <div style={{ position: 'relative', width: '100%', maxWidth: '400px' }}>
-                            <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
-                            <input
-                                type="text"
-                                placeholder="Search data for analysis..."
-                                style={{
-                                    width: '100%',
-                                    backgroundColor: 'transparent',
-                                    border: 'none',
-                                    padding: '0.5rem 0.5rem 0.5rem 2.5rem',
-                                    color: 'var(--color-text-main)',
-                                    outline: 'none'
-                                }}
-                            />
-                        </div>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>
+                            {navItems.find(i => i.path === location.pathname)?.label || 'Dashboard'}
+                        </h2>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                         <button
                             className="btn btn-primary"
                             onClick={() => setIsTicketModalOpen(true)}
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 1rem' }}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1.25rem', borderRadius: '8px' }}
                         >
-                            <Plus size={16} /> {t('board.newTicket')}
+                            <Plus size={18} /> {t('board.newTicket')}
                         </button>
 
                         <LanguageSwitcher />
-
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <span style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>{user?.email}</span>
-                            <div style={{ width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--color-border)' }}>
-                                <img src={`https://ui-avatars.com/api/?name=${user?.email}&background=random`} alt="User" style={{ width: '100%', height: '100%' }} />
-                            </div>
-                        </div>
                     </div>
                 </header>
 
@@ -191,7 +193,7 @@ export default function ZooLayout() {
                     flex: 1,
                     overflow: 'auto',
                     position: 'relative',
-                    padding: '1.5rem'
+                    padding: '2rem'
                 }}>
                     <Outlet />
                 </main>
