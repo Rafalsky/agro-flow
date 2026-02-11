@@ -10,8 +10,10 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@cucumber/cucumber": "^12.5.0",
     "@playwright/test": "^1.57.0",
     "@types/node": "^24.10.1",
+    "playwright-bdd": "^8.4.2",
     "typescript": "^5.9.3"
   }
 }

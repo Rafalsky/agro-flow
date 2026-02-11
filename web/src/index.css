@@ -1,68 +1,11 @@
-:root {
-  /* Colors - Luna Admin Theme */
-  --color-bg-dark: #1f2129;
-  --color-bg-card: #2a2d3a;
-  --color-bg-hover: rgba(255, 255, 255, 0.05);
+@import './styles/variables.css';
+@import './styles/global.css';
 
-  --color-primary: #f5b942;
-  /* Luna Gold */
-  --color-primary-hover: #e5a932;
-  --color-primary-text: #1f2129;
-
-  --color-accent: #f5b942;
-
-  --color-text-main: #ffffff;
-  --color-text-muted: #9ca3af;
-
-  --color-danger: #ef4444;
-  --color-warning: #f59e0b;
-  --color-success: #10b981;
-
-  --color-border: #3f4252;
-
-  /* Typography */
-  --font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
-}
-
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
-  font-family: var(--font-family);
-  background-color: var(--color-bg-dark);
-  color: var(--color-text-main);
-  line-height: 1.5;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Utilities */
+/* Custom application-specific overrides can go here */
 .glass-panel {
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  border-radius: 4px;
-  /* More square as per Luna theme */
-}
-
-.btn {
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-  font-size: 0.875rem;
-  letter-spacing: 0.025em;
-}
-
-.btn-primary {
-  background-color: var(--color-primary);
-  color: var(--color-primary-text);
-}
-
-.btn-primary:hover {
-  background-color: var(--color-primary-hover);
+  background: rgba(42, 45, 58, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-lg);
 }

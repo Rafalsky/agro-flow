@@ -12,34 +12,29 @@ export default function WorkerDashboard() {
     const { t } = useTranslation();
 
     return (
-        <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
-            <header style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '2rem'
-            }}>
+        <div className="container p-6 max-w-4xl mx-auto">
+            <header className="flex justify-between items-center mb-4">
                 <div>
-                    <h1 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{t('dashboard.hello', { name: user?.displayName || 'Worker' })}</h1>
-                    <p style={{ color: 'var(--color-text-muted)' }}>
+                    <h1 className="text-xl font-bold mb-2">{t('dashboard.hello', { name: user?.displayName || 'Worker' })}</h1>
+                    <p className="text-muted">
                         {t('dashboard.status')}: <span style={{ color: isConnected ? 'var(--color-success)' : 'var(--color-danger)' }}>
                             {isConnected ? t('dashboard.online') : t('dashboard.offline')}
                         </span>
                     </p>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div className="flex items-center gap-4">
                     <LanguageSwitcher />
-                    <button className="btn glass-panel" onClick={logout}>{t('nav.logout')}</button>
+                    <button className="btn btn-secondary" onClick={logout}>{t('nav.logout')}</button>
                 </div>
             </header>
 
             <div>
-                <h2 style={{ marginBottom: '1.5rem' }}>{t('dashboard.todaysTasks')}</h2>
+                <h2 className="text-lg font-bold mb-4">{t('dashboard.todaysTasks')}</h2>
 
                 {loading ? (
                     <p>{t('dashboard.loading')}</p>
                 ) : tickets.length === 0 ? (
-                    <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                    <div className="card p-6 text-center text-muted">
                         {t('dashboard.noTasks')}
                     </div>
                 ) : (

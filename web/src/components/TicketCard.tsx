@@ -15,50 +15,39 @@ export function TicketCard({ ticket, onStart, onFinish }: TicketCardProps) {
     const isDone = ticket.status === TicketStatus.WORKER_DONE || ticket.status === TicketStatus.DONE;
 
     return (
-        <div className={clsx('glass-panel', {
-            'border-green-500': isInProgress, // We need to add border utility or inline style
+        <div className={clsx('card mb-4 flex flex-col gap-4 transition-all', {
+            'border-l-4 border-l-green-500 bg-green-900/10': isInProgress,
+            'border-l border-l-gray-700': !isInProgress
         })} style={{
-            padding: '1.5rem',
-            marginBottom: '1rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem',
-            borderLeft: isInProgress ? '4px solid var(--color-success)' : '1px solid rgba(255,255,255,0.1)'
+            borderLeftColor: isInProgress ? 'var(--color-success)' : undefined
         }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div className="flex justify-between items-start">
                 <div>
-                    <span style={{
-                        fontSize: '0.875rem',
-                        color: 'var(--color-text-muted)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem'
-                    }}>
+                    <span className="text-sm text-muted flex items-center gap-2">
                         <Clock size={14} /> {ticket.timeSlot}
                     </span>
-                    <h3 style={{ fontSize: '1.25rem', marginTop: '0.5rem' }}>{ticket.title}</h3>
+                    <h3 className="text-lg font-bold mt-2">{ticket.title}</h3>
                 </div>
-                <span style={{
-                    padding: '0.25rem 0.75rem',
-                    borderRadius: '999px',
-                    fontSize: '0.75rem',
-                    backgroundColor: isInProgress ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.1)',
-                    color: isInProgress ? 'var(--color-success)' : 'inherit'
+                <span className={clsx('px-3 py-1 rounded-full text-xs font-medium', {
+                    'bg-green-500/20 text-green-500': isInProgress,
+                    'bg-gray-500/10 text-gray-400': !isInProgress
+                })} style={{
+                    color: isInProgress ? 'var(--color-success)' : undefined,
+                    backgroundColor: isInProgress ? 'rgba(16, 185, 129, 0.2)' : undefined
                 }}>
                     {ticket.status}
                 </span>
             </div>
 
             {ticket.description && (
-                <p style={{ color: 'var(--color-text-muted)' }}>{ticket.description}</p>
+                <p className="text-muted">{ticket.description}</p>
             )}
 
-            <div style={{ display: 'flex', gap: '1rem', marginTop: 'auto' }}>
+            <div className="flex gap-4 mt-auto">
                 {isPending && (
                     <button
                         className="btn btn-primary"
                         onClick={() => onStart(ticket.id, ticket.version)}
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                     >
                         <Timer size={18} /> Start Task
                     </button>
@@ -66,8 +55,8 @@ export function TicketCard({ ticket, onStart, onFinish }: TicketCardProps) {
 
                 {isInProgress && (
                     <button
-                        className="btn"
-                        style={{ backgroundColor: 'var(--color-accent)', color: 'white', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                        className="btn btn-primary"
+                        style={{ backgroundColor: 'var(--color-success)', borderColor: 'var(--color-success)' }}
                         onClick={() => onFinish(ticket.id, ticket.version)}
                     >
                         <CheckCircle size={18} /> Finish Task
@@ -75,7 +64,7 @@ export function TicketCard({ ticket, onStart, onFinish }: TicketCardProps) {
                 )}
 
                 {isDone && (
-                    <div style={{ color: 'var(--color-success)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div className="text-green-500 flex items-center gap-2" style={{ color: 'var(--color-success)' }}>
                         <CheckCircle size={18} /> Completed
                     </div>
                 )}

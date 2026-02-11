@@ -51,6 +51,7 @@ services:
         condition: service_healthy
     environment:
       NODE_ENV: ${NODE_ENV}
+      API_TARGET: http://api:3000
 
 volumes:
   db-data:

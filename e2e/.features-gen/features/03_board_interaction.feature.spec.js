@@ -1,0 +1,59 @@
+// Generated from: features/03_board_interaction.feature
+import { test } from "../../steps/fixtures.ts";
+
+test.describe('Board Interaction and Ticket Lifecycle', () => {
+
+  test.beforeEach('Background', async ({ Given, page }, testInfo) => { if (testInfo.error) return;
+    await Given('I am logged in', null, { page }); 
+  });
+  
+  test('Creating an ad-hoc ticket', async ({ Given, When, Then, And, page }) => { 
+    await Given('I am logged in as "Zootechnician"', null, { page }); 
+    await When('I click "New Ticket"', null, { page }); 
+    await And('I fill details "Broken Fence" for "Thursday"', null, { page }); 
+    await And('I click "Create"', null, { page }); 
+    await Then('the ticket "Broken Fence" appears in "Thursday" column', null, { page }); 
+  });
+
+  test('Worker starts and stops a ticket', async ({ Given, When, Then, And, page }) => { 
+    await Given('I am logged in as "Worker"', null, { page }); 
+    await And('a ticket "Feed Animals" is assigned to me', null, { page }); 
+    await When('I click "Start" on "Feed Animals"', null, { page }); 
+    await Then('the ticket status changes to "In Progress"', null, { page }); 
+    await And('I see a "Stop" button', null, { page }); 
+    await When('I click "Stop"', null, { page }); 
+    await Then('the ticket status changes to "Done"', null, { page }); 
+  });
+
+  test('Zootechnician reassigns a ticket', async ({ Given, When, Then, And, browser, page }) => { 
+    await Given('I am logged in as "Zootechnician"', null, { page }); 
+    await And('a ticket "Cleaning" is assigned to "Worker A"', null, { page }); 
+    await When('I open the ticket "Cleaning"', null, { page }); 
+    await And('I change assignee to "Worker B"', null, { page }); 
+    await Then('"Worker B" sees the ticket in their view', null, { browser }); 
+    await And('"Worker A" no longer sees the ticket (or sees it unassigned from them)', null, { page }); 
+  });
+
+  test('Moving ticket between days', async ({ Given, When, Then, And, page }) => { 
+    await Given('I am logged in as "Zootechnician"', null, { page }); 
+    await When('I drag ticket "Task A" from "Monday" to "Tuesday"', null, { page }); 
+    await Then('the ticket "Task A" appears in "Tuesday" column', null, { page }); 
+    await And('the API updates the ticket date', null, { page }); 
+  });
+
+});
+
+// == technical section ==
+
+test.use({
+  $test: [({}, use) => use(test), { scope: 'test', box: true }],
+  $uri: [({}, use) => use('features/03_board_interaction.feature'), { scope: 'test', box: true }],
+  $bddFileData: [({}, use) => use(bddFileData), { scope: "test", box: true }],
+});
+
+const bddFileData = [ // bdd-data-start
+  {"pwTestLine":10,"pickleLine":6,"tags":[],"steps":[{"pwStepLine":7,"gherkinStepLine":4,"keywordType":"Context","textWithKeyword":"Given I am logged in","isBg":true,"stepMatchArguments":[]},{"pwStepLine":11,"gherkinStepLine":7,"keywordType":"Context","textWithKeyword":"Given I am logged in as \"Zootechnician\"","stepMatchArguments":[{"group":{"start":18,"value":"\"Zootechnician\"","children":[{"start":19,"value":"Zootechnician","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"}]},{"pwStepLine":12,"gherkinStepLine":8,"keywordType":"Action","textWithKeyword":"When I click \"New Ticket\"","stepMatchArguments":[{"group":{"start":8,"value":"\"New Ticket\"","children":[{"start":9,"value":"New Ticket","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"}]},{"pwStepLine":13,"gherkinStepLine":9,"keywordType":"Action","textWithKeyword":"And I fill details \"Broken Fence\" for \"Thursday\"","stepMatchArguments":[{"group":{"start":15,"value":"\"Broken Fence\"","children":[{"start":16,"value":"Broken Fence","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"},{"group":{"start":34,"value":"\"Thursday\"","children":[{"start":35,"value":"Thursday","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"}]},{"pwStepLine":14,"gherkinStepLine":10,"keywordType":"Action","textWithKeyword":"And I click \"Create\"","stepMatchArguments":[{"group":{"start":8,"value":"\"Create\"","children":[{"start":9,"value":"Create","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"}]},{"pwStepLine":15,"gherkinStepLine":11,"keywordType":"Outcome","textWithKeyword":"Then the ticket \"Broken Fence\" appears in \"Thursday\" column","stepMatchArguments":[{"group":{"start":11,"value":"\"Broken Fence\"","children":[{"start":12,"value":"Broken Fence","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"},{"group":{"start":37,"value":"\"Thursday\"","children":[{"start":38,"value":"Thursday","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"}]}]},
+  {"pwTestLine":18,"pickleLine":13,"tags":[],"steps":[{"pwStepLine":7,"gherkinStepLine":4,"keywordType":"Context","textWithKeyword":"Given I am logged in","isBg":true,"stepMatchArguments":[]},{"pwStepLine":19,"gherkinStepLine":14,"keywordType":"Context","textWithKeyword":"Given I am logged in as \"Worker\"","stepMatchArguments":[{"group":{"start":18,"value":"\"Worker\"","children":[{"start":19,"value":"Worker","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"}]},{"pwStepLine":20,"gherkinStepLine":15,"keywordType":"Context","textWithKeyword":"And a ticket \"Feed Animals\" is assigned to me","stepMatchArguments":[{"group":{"start":9,"value":"\"Feed Animals\"","children":[{"start":10,"value":"Feed Animals","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"}]},{"pwStepLine":21,"gherkinStepLine":16,"keywordType":"Action","textWithKeyword":"When I click \"Start\" on \"Feed Animals\"","stepMatchArguments":[{"group":{"start":8,"value":"\"Start\"","children":[{"start":9,"value":"Start","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"},{"group":{"start":19,"value":"\"Feed Animals\"","children":[{"start":20,"value":"Feed Animals","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"}]},{"pwStepLine":22,"gherkinStepLine":17,"keywordType":"Outcome","textWithKeyword":"Then the ticket status changes to \"In Progress\"","stepMatchArguments":[{"group":{"start":29,"value":"\"In Progress\"","children":[{"start":30,"value":"In Progress","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"}]},{"pwStepLine":23,"gherkinStepLine":18,"keywordType":"Outcome","textWithKeyword":"And I see a \"Stop\" button","stepMatchArguments":[{"group":{"start":8,"value":"\"Stop\"","children":[{"start":9,"value":"Stop","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"}]},{"pwStepLine":24,"gherkinStepLine":20,"keywordType":"Action","textWithKeyword":"When I click \"Stop\"","stepMatchArguments":[{"group":{"start":8,"value":"\"Stop\"","children":[{"start":9,"value":"Stop","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"}]},{"pwStepLine":25,"gherkinStepLine":21,"keywordType":"Outcome","textWithKeyword":"Then the ticket status changes to \"Done\"","stepMatchArguments":[{"group":{"start":29,"value":"\"Done\"","children":[{"start":30,"value":"Done","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"}]}]},
+  {"pwTestLine":28,"pickleLine":23,"tags":[],"steps":[{"pwStepLine":7,"gherkinStepLine":4,"keywordType":"Context","textWithKeyword":"Given I am logged in","isBg":true,"stepMatchArguments":[]},{"pwStepLine":29,"gherkinStepLine":24,"keywordType":"Context","textWithKeyword":"Given I am logged in as \"Zootechnician\"","stepMatchArguments":[{"group":{"start":18,"value":"\"Zootechnician\"","children":[{"start":19,"value":"Zootechnician","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"}]},{"pwStepLine":30,"gherkinStepLine":25,"keywordType":"Context","textWithKeyword":"And a ticket \"Cleaning\" is assigned to \"Worker A\"","stepMatchArguments":[{"group":{"start":9,"value":"\"Cleaning\"","children":[{"start":10,"value":"Cleaning","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"},{"group":{"start":35,"value":"\"Worker A\"","children":[{"start":36,"value":"Worker A","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"}]},{"pwStepLine":31,"gherkinStepLine":26,"keywordType":"Action","textWithKeyword":"When I open the ticket \"Cleaning\"","stepMatchArguments":[{"group":{"start":18,"value":"\"Cleaning\"","children":[{"start":19,"value":"Cleaning","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"}]},{"pwStepLine":32,"gherkinStepLine":27,"keywordType":"Action","textWithKeyword":"And I change assignee to \"Worker B\"","stepMatchArguments":[{"group":{"start":21,"value":"\"Worker B\"","children":[{"start":22,"value":"Worker B","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"}]},{"pwStepLine":33,"gherkinStepLine":28,"keywordType":"Outcome","textWithKeyword":"Then \"Worker B\" sees the ticket in their view","stepMatchArguments":[{"group":{"start":0,"value":"\"Worker B\"","children":[{"start":1,"value":"Worker B","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"}]},{"pwStepLine":34,"gherkinStepLine":29,"keywordType":"Outcome","textWithKeyword":"And \"Worker A\" no longer sees the ticket (or sees it unassigned from them)","stepMatchArguments":[{"group":{"start":0,"value":"\"Worker A\"","children":[{"start":1,"value":"Worker A","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"}]}]},
+  {"pwTestLine":37,"pickleLine":31,"tags":[],"steps":[{"pwStepLine":7,"gherkinStepLine":4,"keywordType":"Context","textWithKeyword":"Given I am logged in","isBg":true,"stepMatchArguments":[]},{"pwStepLine":38,"gherkinStepLine":32,"keywordType":"Context","textWithKeyword":"Given I am logged in as \"Zootechnician\"","stepMatchArguments":[{"group":{"start":18,"value":"\"Zootechnician\"","children":[{"start":19,"value":"Zootechnician","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"}]},{"pwStepLine":39,"gherkinStepLine":33,"keywordType":"Action","textWithKeyword":"When I drag ticket \"Task A\" from \"Monday\" to \"Tuesday\"","stepMatchArguments":[{"group":{"start":14,"value":"\"Task A\"","children":[{"start":15,"value":"Task A","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"},{"group":{"start":28,"value":"\"Monday\"","children":[{"start":29,"value":"Monday","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"},{"group":{"start":40,"value":"\"Tuesday\"","children":[{"start":41,"value":"Tuesday","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"}]},{"pwStepLine":40,"gherkinStepLine":34,"keywordType":"Outcome","textWithKeyword":"Then the ticket \"Task A\" appears in \"Tuesday\" column","stepMatchArguments":[{"group":{"start":11,"value":"\"Task A\"","children":[{"start":12,"value":"Task A","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"},{"group":{"start":31,"value":"\"Tuesday\"","children":[{"start":32,"value":"Tuesday","children":[{"children":[]}]},{"children":[{"children":[]}]}]},"parameterTypeName":"string"}]},{"pwStepLine":41,"gherkinStepLine":35,"keywordType":"Outcome","textWithKeyword":"And the API updates the ticket date","stepMatchArguments":[]}]},
+]; // bdd-data-end
